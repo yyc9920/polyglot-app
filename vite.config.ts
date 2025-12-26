@@ -6,4 +6,3 @@ export default defineConfig({
   plugins: [react()],
   base: '/polyglot-app/', // 저장소 이름과 똑같이 적어주세요!
 })
-```
