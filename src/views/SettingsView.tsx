@@ -1,8 +1,8 @@
 
-import { useState, useEffect } from 'react';
-import { 
-  Check, 
-  X, 
+import React, { useState, useEffect } from 'react';
+import {
+  Check,
+  X,
   RefreshCw,
   Search,
   Key,
@@ -15,10 +15,12 @@ import {
   EyeOff,
   Filter,
   Save,
-  Upload
+  Upload,
+  PlayCircle,
+  Plus,
+  Link as LinkIcon
 } from 'lucide-react';
 import { useVocabAppContext } from '../context/VocabContext';
-
 export function SettingsView() {
   const { 
     voiceURI, 
@@ -31,8 +33,10 @@ export function SettingsView() {
     setApiKey,
     vocabList,
     setVocabList,
-    savedUrl,
-    setSavedUrl
+    savedUrls,
+    setSavedUrls,
+    setReviewMode,
+    setCurrentView
   } = useVocabAppContext();
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -41,6 +45,9 @@ export function SettingsView() {
   
   // Progress Filter
   const [progressFilterTag, setProgressFilterTag] = useState('All');
+  
+  // URL Management
+  const [newUrl, setNewUrl] = useState('');
 
   useEffect(() => {
     const loadVoices = () => {
@@ -52,6 +59,28 @@ export function SettingsView() {
     window.speechSynthesis.onvoiceschanged = loadVoices;
     return () => { window.speechSynthesis.onvoiceschanged = null; };
   }, []);
+
+  const handleStartReview = () => {
+      setReviewMode(true);
+      setCurrentView('learn');
+  };
+
+  const handleAddUrl = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!newUrl) return;
+      if (savedUrls.includes(newUrl)) {
+          alert("URL already exists.");
+          return;
+      }
+      setSavedUrls([...savedUrls, newUrl]);
+      setNewUrl('');
+  };
+
+  const handleRemoveUrl = (url: string) => {
+      if (confirm("Remove this URL?")) {
+          setSavedUrls(savedUrls.filter(u => u !== url));
+      }
+  };
 
   const handleAutoDetectVoice = () => {
     // Collect all tags
@@ -100,7 +129,7 @@ export function SettingsView() {
           status,
           voiceURI,
           apiKey,
-          savedUrl
+          savedUrls
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -135,7 +164,9 @@ export function SettingsView() {
               if (data.status) setStatus(data.status);
               if (data.voiceURI) setVoiceURI(data.voiceURI);
               if (data.apiKey) setApiKey(data.apiKey);
-              if (data.savedUrl) setSavedUrl(data.savedUrl);
+              if (data.savedUrls) setSavedUrls(data.savedUrls);
+              // Backward compatibility
+              if (data.savedUrl && (!data.savedUrls || data.savedUrls.length === 0)) setSavedUrls([data.savedUrl]);
 
               alert("Data loaded successfully!");
           } catch (err: any) {
@@ -213,12 +244,60 @@ export function SettingsView() {
             </div>
           </div>
         </div>
-        <p className="text-center text-sm text-gray-400">
+
+        <button 
+            onClick={handleStartReview}
+            disabled={filteredIncorrect === 0}
+            className="w-full mt-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            <PlayCircle size={20} />
+            Start Review Session ({filteredIncorrect} items)
+        </button>
+
+        <p className="text-center text-sm text-gray-400 mt-2">
             {progressFilterTag === 'All' ? `Total Vocabulary: ${filteredTotalCount}` : `Vocabulary in '${progressFilterTag}': ${filteredTotalCount}`}
         </p>
       </section>
 
-      {/* 2. AI Configuration */}
+      {/* 2. Content Sources */}
+      <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-800 dark:text-gray-100">
+            <LinkIcon className="text-indigo-500" /> Content Sources (CSV)
+          </h3>
+          <div className="space-y-4">
+              <div className="space-y-2">
+                  {savedUrls.length === 0 && <p className="text-sm text-gray-400 italic">No CSV sources added.</p>}
+                  {savedUrls.map((url, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg group">
+                          <LinkIcon size={14} className="text-gray-400 flex-none" />
+                          <span className="text-xs text-gray-600 dark:text-gray-300 truncate flex-1 font-mono">{url}</span>
+                          <button onClick={() => handleRemoveUrl(url)} className="p-1 text-gray-400 hover:text-red-500">
+                              <Trash2 size={14} />
+                          </button>
+                      </div>
+                  ))}
+              </div>
+              
+              <form onSubmit={handleAddUrl} className="flex gap-2">
+                  <input 
+                      type="url" 
+                      placeholder="https://.../data.csv" 
+                      value={newUrl}
+                      onChange={(e) => setNewUrl(e.target.value)}
+                      className="flex-1 p-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                  />
+                  <button type="submit" className="p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">
+                      <Plus size={20} />
+                  </button>
+              </form>
+              <p className="text-xs text-gray-400">
+                  Data from these URLs is automatically fetched and merged on startup.
+              </p>
+          </div>
+      </section>
+
+      {/* 3. AI Configuration */}
       <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-800 dark:text-gray-100">
           <Settings className="text-purple-500" /> AI Configuration
@@ -232,7 +311,7 @@ export function SettingsView() {
                placeholder="Enter your API Key..." 
                value={apiKey} 
                onChange={(e) => setApiKey(e.target.value)}
-               className="flex-1 pl-10 pr-10 p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+               className="flex-1 pl-10 pr-10 p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
              />
              <button 
                onClick={() => setShowApiKey(!showApiKey)}
@@ -247,7 +326,7 @@ export function SettingsView() {
         </div>
       </section>
 
-      {/* 3. Text-to-Speech Settings */}
+      {/* 4. Text-to-Speech Settings */}
       <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="flex justify-between items-center mb-4">
            <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800 dark:text-gray-100">
@@ -266,14 +345,14 @@ export function SettingsView() {
                placeholder="Search voices (e.g. 'Google', 'jp')..." 
                value={voiceFilter}
                onChange={(e) => setVoiceFilter(e.target.value)}
-               className="w-full pl-10 p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+               className="w-full pl-10 p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
              />
           </div>
           
           <select 
             value={voiceURI || ''} 
             onChange={(e) => setVoiceURI(e.target.value || null)}
-            className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+            className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
           >
             <option value="">Default System Voice</option>
             {filteredVoices.map(v => (
@@ -288,7 +367,7 @@ export function SettingsView() {
         </div>
       </section>
 
-      {/* 4. Data Management */}
+      {/* 5. Data Management */}
       <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-800 dark:text-gray-100">
           <Database className="text-red-500" /> Data Management

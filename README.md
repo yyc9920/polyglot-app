@@ -1,73 +1,104 @@
-# React + TypeScript + Vite
+# 🦜 Polygot: AI-Powered language learning web app with sentence
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Learn smarter, not harder.** Polygot generates custom sentence lists based on your specific interests using Google's Gemini AI.
 
-Currently, two official plugins are available:
+*(Replace this image with a screenshot of your app's dashboard)*
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📋 Project Overview
 
-## React Compiler
+Polygot is a modern web application designed to help language learners build sentence relevant to *them*. Instead of static, pre-made lists, Polygot uses Artificial Intelligence to generate context-aware vocabulary cards.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Key Features:**
 
-## Expanding the ESLint configuration
+* **AI Generation:** Create sentence lists for any topic (e.g., "Ordering Coffee", "NBA Terms", "Business Meetings") using Google Gemini.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+* **Multi-language Support:** Supports various source and target languages (English, Korean, Japanese, French, etc.).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* **Interactive Learning:** Flashcard mode for memorization.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+* **Quiz Mode:** Test your knowledge with interactive quizzes.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+* **Local Storage:** Your progress is saved locally on your browser.
+
+## 🚀 User Guide
+
+Follow these steps to master your target language.
+
+### 1. Initial Setup
+
+Before you begin, you need to configure the AI.
+
+1. Go to the **Settings** tab.
+
+2. Enter your **Google Gemini API Key**. (You can get one for free from Google AI Studio).
+
+3. (Optional) Toggle **Dark Mode** for a better viewing experience.
+
+⠀
+### 2. Build Your List
+
+1. Navigate to the **Builder** tab.
+
+2. **Topic:** Type what you want to learn about (e.g., *"Travel survival phrases"*).
+
+3. **Language:** Select your Source Language and Target Language.
+
+4. **Difficulty:** Choose from Beginner, Intermediate, or Advanced.
+
+5. Click **Generate**. The AI will create a structured list for you.
+
+⠀
+### 3. Study & Quiz
+
+* **Learn:** Use the **Learn** tab to view flashcards. Click a card to flip it and reveal the meaning and pronunciation.
+
+* **Quiz:** Go to the **Quiz** tab to test your recall. The app tracks your score instantly.
+
+## 💻 Developer Guide
+
+This section explains the technical structure for contributors or developers who want to understand the codebase.
+
+### Tech Stack
+
+* **Framework:** React (Vite)
+
+* **Language:** TypeScript
+
+* **Styling:** Tailwind CSS
+
+* **AI Integration:** Google Generative AI SDK (Gemini)
+
+* **State Management:** React Context API
+
+### Project Structure
+
+The project follows a clean, feature-based architecture:
+
+```
+src/
+├── components/   # Reusable UI components (Modals, Buttons)
+├── context/      # Global state (VocabContext)
+├── hooks/        # Custom hooks (useLocalStorage, useTheme)
+├── lib/          # AI logic and utilities
+├── views/        # Main page layouts (Builder, Learn, Quiz)
+└── types/        # TypeScript interfaces
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### State Management (`src/context/VocabContext.tsx`)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The app uses a central Context to manage the list of words and user interactions. Data persistence is handled via a custom `useLocalStorage` hook, ensuring data survives page reloads without a backend database.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Installation & Run
+
 ```
+# 1. Clone the repository
+git clone [https://github.com/your-username/polygot-app.git](https://github.com/your-username/polygot-app.git)
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the development server
+npm run-script dev
+```
+
+*Built with ❤️ by Kendrick Yun.*

@@ -224,7 +224,7 @@ export function QuizView() {
             <select 
               value={selectedTag}
               onChange={(e) => setSelectedTag(e.target.value)}
-              className="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-sm"
+              className="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm"
             >
               <option value="">Select a tag...</option>
               {tags.map(t => <option key={t} value={t}>{t}</option>)}
@@ -306,7 +306,7 @@ export function QuizView() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={currentItem.type === 'cloze' ? "Type the missing word..." : "Type answer..."}
-          className={`w-full p-4 rounded-xl border-2 bg-transparent text-lg outline-none transition-colors
+          className={`w-full p-4 rounded-xl border-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-lg outline-none transition-colors
             ${feedback === 'none' ? 'border-gray-200 dark:border-gray-700 focus:border-blue-500' : ''}
             ${feedback === 'correct' ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : ''}
             ${feedback === 'incorrect' ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400' : ''}

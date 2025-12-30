@@ -4,11 +4,9 @@ import {
   Upload,
   Download,
   Trash2,
-  Link as LinkIcon,
   Sparkles,
   Loader2,
-  Tag,
-  RefreshCw
+  Tag
 } from 'lucide-react';
 import type { VocabItem } from '../types';
 import { callGemini } from '../lib/gemini';
@@ -17,12 +15,10 @@ import { useVocabAppContext } from '../context/VocabContext';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 
 export function BuilderView() {
-  const { vocabList, setVocabList, apiKey, setSavedUrl, savedUrl } = useVocabAppContext();
+  const { vocabList, setVocabList, apiKey } = useVocabAppContext();
 
   const [activeTab, setActiveTab] = useState<'manual' | 'ai'>('ai'); 
   const [form, setForm] = useState({ meaning: '', sentence: '', pronunciation: '', tags: '' });
-  const [urlInput, setUrlInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiCount, setAiCount] = useState(5);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -31,24 +27,6 @@ export function BuilderView() {
   
   // Confirmation Modal State
   const [generatedItems, setGeneratedItems] = useState<VocabItem[] | null>(null);
-
-  const handleUpdateFromSaved = async () => {
-    if (!savedUrl) return;
-    setIsLoading(true);
-    try {
-      const fetchUrl = new URL(savedUrl);
-      fetchUrl.searchParams.append('_t', String(Date.now()));
-      const response = await fetch(fetchUrl.toString());
-      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-      const text = await response.text();
-      processCSVText(text);
-      // Optional: alert success if processCSVText doesn't
-    } catch (error: any) {
-       alert(`Update failed: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +66,17 @@ Contents:
 Meaning: Native language translation (e.g. Korean)
 Sentence: Target language sentence (e.g. Japanese)
 Pronunciation: Pronunciation guide (e.g. Romaji)
-Tags: Tags in Native language (e.g. "일상,회사"). Can be multiple tags separated by comma. If context implies a specific language, add that as a tag (e.g. "일본어").
+Tags: Tags in Native language (e.g. "일상,비즈니스"). Can be multiple tags separated by comma. If context implies a specific language, add that as a tag (e.g. "일본어").
+    - Tag List(in Native Language):
+      1. 일상
+      2. 여행
+      3. 식사
+      4. 비즈니스
+      5. IT
+      6. 사회
+      7. 스포츠
+      8. 학습
+      9. 감정
 Enclose each data point in double quotation marks("").
 Example:
 "따뜻한 아메리카노 한 잔 주세요","ホットコーヒーを一つください","Hotto kōhī o hitotsu kudasai","카페,주문,일본어"
@@ -187,30 +175,6 @@ Make sure that there isn't format error. Return ONLY the CSV content, no introdu
     reader.readAsText(file);
   };
 
-  const handleUrlUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!urlInput) return;
-    setIsLoading(true);
-    try {
-      const fetchUrl = new URL(urlInput);
-      fetchUrl.searchParams.append('_t', String(Date.now()));
-      const response = await fetch(fetchUrl.toString());
-      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-      const text = await response.text();
-      processCSVText(text);
-      setSavedUrl(urlInput); // Save successful URL
-      setUrlInput('');
-    } catch (error: any) {
-      if (error.name === 'TypeError') {
-        alert('CORS 오류 또는 네트워크 문제로 데이터를 불러올 수 없습니다.');
-      } else {
-        alert(`데이터 로드 실패: ${error.message}`);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const exportCSV = () => {
     const header = ['Meaning', 'Sentence', 'Pronunciation', 'Tags'];
     const rows = vocabList.map(v => [
@@ -279,11 +243,11 @@ Make sure that there isn't format error. Return ONLY the CSV content, no introdu
       {/* AI Form */}
       {activeTab === 'ai' ? (
         <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-gray-800 dark:to-gray-800 p-6 rounded-2xl shadow-sm border border-blue-100 dark:border-gray-700">
-          <div className="flex items-center gap-2 mb-4"><Sparkles className="text-blue-500" /><h3 className="font-bold text-lg">AI Vocabulary Generator</h3></div>
+          <div className="flex items-center gap-2 mb-4"><Sparkles className="text-blue-500" /><h3 className="font-bold text-lg">AI Phrase/Sentence Generator</h3></div>
           <form onSubmit={handleAiGenerate} className="flex flex-col gap-3">
              <div className="flex gap-2">
-               <input className="flex-1 p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Travel in Japan" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} required />
-               <input type="number" min="1" max="20" value={aiCount} onChange={(e) => setAiCount(parseInt(e.target.value))} className="w-16 p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-center" />
+               <input className="flex-1 p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Travel in Japan" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} required />
+               <input type="number" min="1" max="20" value={aiCount} onChange={(e) => setAiCount(parseInt(e.target.value))} className="w-16 p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" />
              </div>
              <button type="submit" disabled={isGenerating} className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 shadow-md">
                 {isGenerating ? <Loader2 className="animate-spin" /> : <Sparkles size={18} />} Generate Phrases
@@ -294,11 +258,11 @@ Make sure that there isn't format error. Return ONLY the CSV content, no introdu
         <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
           <h3 className="font-bold mb-4 flex items-center gap-2"><PlusCircle size={20} className="text-blue-500"/> Manual Entry</h3>
           <form onSubmit={handleAdd} className="flex flex-col gap-3">
-            <input className="p-2 rounded-lg border dark:border-gray-600 bg-transparent" placeholder="Meaning (뜻) *" value={form.meaning} onChange={e => setForm({...form, meaning: e.target.value})} required />
-            <input className="p-2 rounded-lg border dark:border-gray-600 bg-transparent" placeholder="Sentence (문장) *" value={form.sentence} onChange={e => setForm({...form, sentence: e.target.value})} required />
-            <input className="p-2 rounded-lg border dark:border-gray-600 bg-transparent" placeholder="Pronunciation (발음)" value={form.pronunciation} onChange={e => setForm({...form, pronunciation: e.target.value})} />
-            <input className="p-2 rounded-lg border dark:border-gray-600 bg-transparent" placeholder="Tags (쉼표로 구분)" value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} />
-            <button type="submit" className="bg-gray-800 text-white py-2 rounded-lg font-medium hover:bg-gray-900 transition-colors">Add Item</button>
+            <input className="p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="Meaning (뜻) *" value={form.meaning} onChange={e => setForm({...form, meaning: e.target.value})} required />
+            <input className="p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="Sentence (문장) *" value={form.sentence} onChange={e => setForm({...form, sentence: e.target.value})} required />
+            <input className="p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="Pronunciation (발음)" value={form.pronunciation} onChange={e => setForm({...form, pronunciation: e.target.value})} />
+            <input className="p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="Tags (쉼표로 구분)" value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} />
+            <button type="submit" className="bg-gray-800 dark:bg-gray-700 text-white py-2 rounded-lg font-medium hover:bg-gray-900 dark:hover:bg-gray-600 transition-colors">Add Item</button>
           </form>
         </div>
       )}
@@ -309,49 +273,38 @@ Make sure that there isn't format error. Return ONLY the CSV content, no introdu
           <span className="text-sm font-bold text-gray-600 dark:text-gray-400">CSV File Import</span>
           <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
         </label>
-        <div className="flex flex-col p-6 bg-gray-100 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 text-gray-500"><LinkIcon size={24} /><span className="text-sm font-bold text-gray-600 dark:text-gray-400">CSV from URL</span></div>
-            {savedUrl && (
-                 <button onClick={handleUpdateFromSaved} disabled={isLoading} className="text-xs flex items-center gap-1 text-blue-500 hover:text-blue-600 font-bold bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded transition-colors" type="button">
-                     <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} /> Update from Saved
-                 </button>
-             )}
-          </div>
-          <form onSubmit={handleUrlUpload} className="flex gap-2 w-full">
-            <input type="url" placeholder="https://gist.githubusercontent.com/..." className="flex-1 min-w-0 p-3 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" value={urlInput} onChange={(e) => setUrlInput(e.target.value)} required />
-            <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-500 text-white text-sm font-bold rounded-lg hover:bg-blue-600 disabled:opacity-50 whitespace-nowrap flex-shrink-0">{isLoading ? '...' : 'Load'}</button>
-          </form>
-        </div>
       </div>
       <button onClick={exportCSV} className="w-full py-3 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center gap-2" type="button"><Download size={20} className="text-gray-500" /><span className="text-sm font-medium text-gray-600 dark:text-gray-400">Download CSV (Export)</span></button>
       
       {/* Stored Items List */}
-      <div className="flex-1 overflow-auto bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 min-h-[500px]">
-        {/* Fixed z-index for sticky header */}
-        <h3 className="text-sm font-bold text-gray-400 uppercase mb-4 sticky top-0 bg-white dark:bg-gray-800 py-2 flex justify-between items-center z-10">
-          <span>Stored Items ({vocabList.length})</span>
-          <button onClick={() => setShowDeleteInput(!showDeleteInput)} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">
-            <Tag size={12} /> {showDeleteInput ? 'Cancel' : 'Delete by Tag'}
-          </button>
-        </h3>
-        
-        {showDeleteInput && (
-          <form onSubmit={executeTagDeletion} className="mb-4 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30 flex gap-2 items-center">
-            <input 
-              type="text" 
-              placeholder="Enter tags to delete (comma separated)..." 
-              className="flex-1 p-2 text-sm rounded border border-red-200 dark:border-red-800 bg-white dark:bg-black/20 focus:outline-none focus:ring-1 focus:ring-red-500"
-              value={deleteTagsInput}
-              onChange={(e) => setDeleteTagsInput(e.target.value)}
-            />
-            <button type="submit" className="px-3 py-2 bg-red-500 text-white text-xs font-bold rounded hover:bg-red-600 whitespace-nowrap">
-              Delete Matches
+      <div className="flex flex-col flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 min-h-[500px] overflow-hidden">
+        {/* Fixed Header */}
+        <div className="flex-none p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 z-10">
+          <h3 className="text-sm font-bold text-gray-400 uppercase flex justify-between items-center">
+            <span>Stored Items ({vocabList.length})</span>
+            <button onClick={() => setShowDeleteInput(!showDeleteInput)} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">
+              <Tag size={12} /> {showDeleteInput ? 'Cancel' : 'Delete by Tag'}
             </button>
-          </form>
-        )}
+          </h3>
+          
+          {showDeleteInput && (
+            <form onSubmit={executeTagDeletion} className="mt-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30 flex gap-2 items-center">
+              <input 
+                type="text" 
+                placeholder="Enter tags to delete (comma separated)..." 
+                className="flex-1 p-2 text-sm rounded border border-red-200 dark:border-red-800 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-red-500"
+                value={deleteTagsInput}
+                onChange={(e) => setDeleteTagsInput(e.target.value)}
+              />
+              <button type="submit" className="px-3 py-2 bg-red-500 text-white text-xs font-bold rounded hover:bg-red-600 whitespace-nowrap">
+                Delete Matches
+              </button>
+            </form>
+          )}
+        </div>
 
-        <div className="space-y-3">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {vocabList.slice().reverse().map((item) => (
             <div key={item.id} className="flex justify-between items-start p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
               <div><p className="font-bold text-sm">{item.meaning}</p><p className="text-blue-600 dark:text-blue-300 text-sm">{item.sentence}</p><div className="flex gap-1 mt-1">{item.tags.map(t => <span key={t} className="text-[10px] bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-300">{t}</span>)}</div></div>

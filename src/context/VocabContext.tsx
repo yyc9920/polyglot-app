@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, type ReactNode, type Dispatch, type SetStateAction } from 'react';
-import type { LearningStatus, VocabItem } from '../types';
+import React, { createContext, useContext, useEffect, useState, type ReactNode, type Dispatch, type SetStateAction } from 'react';
+import type { LearningStatus, VocabItem, ViewMode } from '../types';
 import { SAMPLE_DATA } from '../constants';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { parseCSV, generateId } from '../lib/utils';
@@ -13,8 +13,12 @@ interface VocabAppContextType {
   setVoiceURI: Dispatch<SetStateAction<string | null>>;
   apiKey: string;
   setApiKey: Dispatch<SetStateAction<string>>;
-  savedUrl: string;
-  setSavedUrl: Dispatch<SetStateAction<string>>;
+  savedUrls: string[];
+  setSavedUrls: Dispatch<SetStateAction<string[]>>;
+  currentView: ViewMode;
+  setCurrentView: Dispatch<SetStateAction<ViewMode>>;
+  reviewMode: boolean;
+  setReviewMode: Dispatch<SetStateAction<boolean>>;
   handleReset: () => void;
   handleDeleteAllData: () => void;
   totalCount: number;
@@ -31,55 +35,82 @@ export const VocabAppProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [status, setStatus] = useLocalStorage<LearningStatus>('learningStatus', { completedIds: [], incorrectIds: [] });
   const [voiceURI, setVoiceURI] = useLocalStorage<string | null>('ttsVoiceURI', null);
   const [apiKey, setApiKey] = useLocalStorage<string>('geminiApiKey', '');
-  const [savedUrl, setSavedUrl] = useLocalStorage<string>('csvSourceUrl', '');
+  
+  const [savedUrls, setSavedUrls] = useLocalStorage<string[]>('csvSourceUrls', []);
+  const [currentView, setCurrentView] = useState<ViewMode>('learn');
+  const [reviewMode, setReviewMode] = useState(false);
 
-  // Auto-fetch data from savedUrl on mount
+  // Migration for old savedUrl
+  const [oldSavedUrl, setOldSavedUrl] = useLocalStorage<string>('csvSourceUrl', '');
+  useEffect(() => {
+    if (oldSavedUrl && savedUrls.length === 0) {
+       setSavedUrls([oldSavedUrl]);
+       setOldSavedUrl(''); // Clear old
+    }
+  }, []);
+
+  // Auto-fetch data from savedUrls on mount/change
   useEffect(() => {
     const fetchData = async () => {
-      if (!savedUrl) return;
-      try {
-        const fetchUrl = new URL(savedUrl);
-        fetchUrl.searchParams.append('_t', String(Date.now())); // Cache busting
-        const response = await fetch(fetchUrl.toString());
-        if (!response.ok) return;
-        const text = await response.text();
-        
-        // Process CSV
-        const cleanText = text.replace(/^\uFEFF/, '').trim();
-        if (!cleanText) return;
-        const rows = parseCSV(cleanText);
-        const startIdx = rows.length > 0 && rows[0].some(cell => cell.toLowerCase().includes('meaning')) ? 1 : 0;
-        const newItems: VocabItem[] = [];
-        for (let i = startIdx; i < rows.length; i++) {
-            const row = rows[i];
-            if (row.length < 2) continue;
-            if (!row[0] && !row[1]) continue;
-            newItems.push({
-                id: generateId(row[0], row[1]),
-                meaning: row[0],
-                sentence: row[1],
-                pronunciation: row[2] || '',
-                tags: row[3] ? row[3].split(',').map(t => t.trim()) : []
-            });
-        }
+      if (savedUrls.length === 0) return;
+      
+      let allNewItems: VocabItem[] = [];
 
-        if (newItems.length > 0) {
-            setVocabList((prev: VocabItem[]) => {
-                const existingIds = new Set(prev.map(p => p.id));
-                const uniqueNew = newItems.filter(item => !existingIds.has(item.id));
-                if (uniqueNew.length === 0) return prev;
-                // Merge and dedup
-                return [...prev, ...uniqueNew];
-            });
-            console.log(`Updated data from ${savedUrl}: ${newItems.length} items processed.`);
+      for (const url of savedUrls) {
+        try {
+            const fetchUrl = new URL(url);
+            fetchUrl.searchParams.append('_t', String(Date.now())); // Cache busting
+            const response = await fetch(fetchUrl.toString());
+            if (!response.ok) continue;
+            const text = await response.text();
+            
+            // Process CSV
+            const cleanText = text.replace(/^\uFEFF/, '').trim();
+            if (!cleanText) continue;
+            const rows = parseCSV(cleanText);
+            const startIdx = rows.length > 0 && rows[0].some(cell => cell.toLowerCase().includes('meaning')) ? 1 : 0;
+            
+            for (let i = startIdx; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.length < 2) continue;
+                if (!row[0] && !row[1]) continue;
+                allNewItems.push({
+                    id: generateId(row[0], row[1]),
+                    meaning: row[0],
+                    sentence: row[1],
+                    pronunciation: row[2] || '',
+                    tags: row[3] ? row[3].split(',').map(t => t.trim()) : []
+                });
+            }
+        } catch (error) {
+            console.error(`Failed to fetch from ${url}:`, error);
         }
-      } catch (error) {
-        console.error("Failed to auto-fetch from saved URL:", error);
+      }
+
+      if (allNewItems.length > 0) {
+        setVocabList((prev: VocabItem[]) => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const uniqueNew = allNewItems.filter(item => !existingIds.has(item.id));
+            
+            // Further dedup within new items
+            const reallyUnique: VocabItem[] = [];
+            const seenInBatch = new Set();
+            for(const item of uniqueNew) {
+                if(!seenInBatch.has(item.id)) {
+                    seenInBatch.add(item.id);
+                    reallyUnique.push(item);
+                }
+            }
+
+            if (reallyUnique.length === 0) return prev;
+            console.log(`Updated data: ${reallyUnique.length} new items processed.`);
+            return [...prev, ...reallyUnique];
+        });
       }
     };
 
     fetchData();
-  }, [savedUrl, setVocabList]);
+  }, [savedUrls, setVocabList]);
 
   const handleReset = () => {
     if (confirm('모든 학습 기록을 초기화하시겠습니까?')) {
@@ -91,7 +122,7 @@ export const VocabAppProvider: React.FC<{ children: ReactNode }> = ({ children }
     if (confirm('모든 데이터를 삭제하시겠습니까? (복구 불가)')) {
       setVocabList([]);
       setStatus({ completedIds: [], incorrectIds: [] });
-      setSavedUrl('');
+      setSavedUrls([]);
     }
   };
 
@@ -106,8 +137,12 @@ export const VocabAppProvider: React.FC<{ children: ReactNode }> = ({ children }
     setVoiceURI,
     apiKey,
     setApiKey,
-    savedUrl,
-    setSavedUrl,
+    savedUrls,
+    setSavedUrls,
+    currentView,
+    setCurrentView,
+    reviewMode,
+    setReviewMode,
     handleReset,
     handleDeleteAllData,
     totalCount,

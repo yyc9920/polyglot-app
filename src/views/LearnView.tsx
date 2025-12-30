@@ -15,7 +15,9 @@ import {
   Save,
   CheckSquare, 
   Square,
-  ChevronDown
+  ChevronDown,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import type { LearningStatus, VocabItem } from '../types';
 import { callGemini } from '../lib/gemini';
@@ -24,7 +26,7 @@ import useLocalStorage from '../hooks/useLocalStorage';
 
 // --- Learn View ---
 export function LearnView() {
-  const { vocabList, setVocabList, voiceURI, status, apiKey } = useVocabAppContext();
+  const { vocabList, setVocabList, voiceURI, status, apiKey, reviewMode, setReviewMode } = useVocabAppContext();
 
   const [viewMode, setViewMode] = useLocalStorage<'card' | 'list'>('learnViewMode', 'card');
   const [currentIndex, setCurrentIndex] = useLocalStorage<number>('learnCurrentIndex', 0);
@@ -43,11 +45,16 @@ export function LearnView() {
 
   useEffect(() => {
     let list = vocabList;
+
+    // 0. Review Mode Filter
+    if (reviewMode) {
+        list = list.filter(v => status.incorrectIds.includes(v.id));
+    }
     
     // 1. Filter by Tags (Multiple)
     if (selectedTags.length > 0) {
       // Show items that have AT LEAST ONE of the selected tags
-      list = vocabList.filter(v => v.tags.some(tag => selectedTags.includes(tag)));
+      list = list.filter(v => v.tags.some(tag => selectedTags.includes(tag)));
     }
 
     // 2. Filter by Search Term
@@ -72,7 +79,7 @@ export function LearnView() {
     }
     setIsFlipped(false);
     setAiExplanation('');
-  }, [vocabList, selectedTags, isShuffled, searchTerm]);
+  }, [vocabList, selectedTags, isShuffled, searchTerm, reviewMode, status.incorrectIds]);
 
 
   const speak = (text: string) => {
@@ -109,12 +116,6 @@ export function LearnView() {
     }
     
     setShowAiModal(true);
-    // If the item already has a memo, show it? 
-    // Requirement says "save the AI tutor's generated content to the sentence card in background".
-    // So if it exists, we might want to load it or just generate new. 
-    // Let's generate new but show existing memo if user wants? 
-    // Actually, usually AI Explain is dynamic. Let's just generate.
-    // If we want to show existing memo, we can do that in the card.
 
     if (aiExplanation) return;
 
@@ -151,17 +152,37 @@ export function LearnView() {
   // Memo List Filter
   const memoList = vocabList.filter(v => v.memo);
 
-  if (displayList.length === 0 && !searchTerm && selectedTags.length === 0 && !showMemoList) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-        <p>표시할 데이터가 없습니다.</p>
-        <p className="text-sm mt-2">빌더 탭에서 데이터를 추가하세요.</p>
-      </div>
-    );
+  if (displayList.length === 0) {
+      if (reviewMode) {
+          return (
+              <div className="flex flex-col items-center justify-center h-64 text-gray-500 gap-4">
+                  <p>복습할 항목이 없습니다.</p>
+                  <button onClick={() => setReviewMode(false)} className="px-4 py-2 bg-blue-500 text-white rounded-lg">
+                      학습 모드로 돌아가기
+                  </button>
+              </div>
+          );
+      }
+      if (!searchTerm && selectedTags.length === 0 && !showMemoList) {
+        return (
+          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+            <p>표시할 데이터가 없습니다.</p>
+            <p className="text-sm mt-2">빌더 탭에서 데이터를 추가하세요.</p>
+          </div>
+        );
+      }
   }
 
   return (
     <div className="flex flex-col h-full gap-4 relative">
+      {/* Review Mode Banner */}
+      {reviewMode && (
+          <div className="flex-none bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-2 rounded-xl text-sm font-bold flex items-center justify-between">
+              <span className="flex items-center gap-2"><AlertCircle size={16}/> Review Session Active</span>
+              <button onClick={() => setReviewMode(false)} className="text-xs underline">Exit</button>
+          </div>
+      )}
+
       {/* Unified Controls Container */}
       <div className="flex-none flex items-center justify-between gap-2 bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 z-10">
         
@@ -196,7 +217,7 @@ export function LearnView() {
                 placeholder="Search..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-7 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full pl-8 pr-7 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />
             {searchTerm && (
                 <button 
@@ -353,7 +374,15 @@ export function LearnView() {
                 className={`w-full transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''} grid grid-cols-1 grid-rows-1`}
               >
                 {/* Front (Sentence) */}
-                <div className="col-start-1 row-start-1 backface-hidden bg-blue-50 dark:bg-gray-800 rounded-3xl shadow-xl border border-blue-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[300px]">
+                <div className="col-start-1 row-start-1 backface-hidden bg-blue-50 dark:bg-gray-800 rounded-3xl shadow-xl border border-blue-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[300px] relative">
+                  <div className="absolute top-4 right-4 flex gap-1">
+                    {status.completedIds.includes(displayList[currentIndex].id) && (
+                      <CheckCircle className="text-green-500" size={24} />
+                    )}
+                    {status.incorrectIds.includes(displayList[currentIndex].id) && (
+                      <AlertCircle className="text-red-500" size={24} />
+                    )}
+                  </div>
                   <div className="flex-none mb-4">
                     <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider">Expression</span>
                   </div>
@@ -403,7 +432,15 @@ export function LearnView() {
                 </div>
 
                 {/* Back (Meaning) */}
-                <div className="col-start-1 row-start-1 backface-hidden rotate-y-180 bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[300px]">
+                <div className="col-start-1 row-start-1 backface-hidden rotate-y-180 bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[300px] relative">
+                  <div className="absolute top-4 right-4 flex gap-1">
+                    {status.completedIds.includes(displayList[currentIndex].id) && (
+                      <CheckCircle className="text-green-500" size={24} />
+                    )}
+                    {status.incorrectIds.includes(displayList[currentIndex].id) && (
+                      <AlertCircle className="text-red-500" size={24} />
+                    )}
+                  </div>
                   <div className="flex-none mb-4">
                     <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Meaning</span>
                   </div>
@@ -493,8 +530,8 @@ function FlipListItem({ item, idx, status, speak }: { item: VocabItem, idx: numb
           )}
         </p>
         <div className="flex gap-1 mt-1 pl-8">
-           {status.completedIds.includes(item.id) && <div className="w-2 h-2 rounded-full bg-green-500" title="Learned"/>}
-           {status.incorrectIds.includes(item.id) && <div className="w-2 h-2 rounded-full bg-red-500" title="Incorrect"/>}
+           {status.completedIds.includes(item.id) && <CheckCircle size={14} className="text-green-500" />}
+           {status.incorrectIds.includes(item.id) && <AlertCircle size={14} className="text-red-500" />}
            {item.memo && <div className="w-2 h-2 rounded-full bg-yellow-500" title="Has Memo"/>}
         </div>
       </div>
