@@ -214,8 +214,9 @@ export function LearnView() {
         Key words...
 
       Keep the total response concise.
+      Do not contain greetings or any small talks. Just straight through the point.
       `;
-      const text = await callGemini(prompt, apiKey, 500);
+      const text = await callGemini(prompt, apiKey);
       setAiExplanation(text);
     } catch (err: any) {
       setAiExplanation(`Error: ${err.message}`);
