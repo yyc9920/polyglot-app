@@ -237,6 +237,7 @@ Make sure that there isn't format error. Return ONLY the CSV content, no introdu
           items={generatedItems}
           onConfirm={confirmGeneratedItems}
           onCancel={() => setGeneratedItems(null)}
+          onUpdate={setGeneratedItems}
         />
       )}
 

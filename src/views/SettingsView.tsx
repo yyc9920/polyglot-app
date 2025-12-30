@@ -36,7 +36,8 @@ export function SettingsView() {
     savedUrls,
     setSavedUrls,
     setReviewMode,
-    setCurrentView
+    setCurrentView,
+    syncUrl
   } = useVocabAppContext();
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -48,6 +49,7 @@ export function SettingsView() {
   
   // URL Management
   const [newUrl, setNewUrl] = useState('');
+  const [isSyncing, setIsSyncing] = useState<string | null>(null);
 
   useEffect(() => {
     const loadVoices = () => {
@@ -80,6 +82,12 @@ export function SettingsView() {
       if (confirm("Remove this URL?")) {
           setSavedUrls(savedUrls.filter(u => u !== url));
       }
+  };
+
+  const handleSyncUrl = async (url: string) => {
+      setIsSyncing(url);
+      await syncUrl(url);
+      setIsSyncing(null);
   };
 
   const handleAutoDetectVoice = () => {
@@ -271,6 +279,14 @@ export function SettingsView() {
                       <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg group">
                           <LinkIcon size={14} className="text-gray-400 flex-none" />
                           <span className="text-xs text-gray-600 dark:text-gray-300 truncate flex-1 font-mono">{url}</span>
+                          <button 
+                            onClick={() => handleSyncUrl(url)} 
+                            disabled={isSyncing === url}
+                            className={`p-1 text-gray-400 hover:text-blue-500 ${isSyncing === url ? 'animate-spin text-blue-500' : ''}`}
+                            title="Sync now"
+                          >
+                              <RefreshCw size={14} />
+                          </button>
                           <button onClick={() => handleRemoveUrl(url)} className="p-1 text-gray-400 hover:text-red-500">
                               <Trash2 size={14} />
                           </button>

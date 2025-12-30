@@ -1,13 +1,39 @@
-import { Sparkles, X, Check } from 'lucide-react';
+import { Sparkles, X, Check, Trash2, Tag } from 'lucide-react';
 import type { VocabItem } from '../types';
+import { generateId } from '../lib/utils';
 
 interface ConfirmationModalProps {
   items: VocabItem[];
   onConfirm: () => void;
   onCancel: () => void;
+  onUpdate: (items: VocabItem[]) => void;
 }
 
-export function ConfirmationModal({ items, onConfirm, onCancel }: ConfirmationModalProps) {
+export function ConfirmationModal({ items, onConfirm, onCancel, onUpdate }: ConfirmationModalProps) {
+  const handleChange = (index: number, field: keyof VocabItem, value: string) => {
+      const newItems = [...items];
+      let updatedValue: any = value;
+
+      if (field === 'tags') {
+          updatedValue = value.split(',').map(t => t.trim()).filter(Boolean);
+      }
+
+      const item = { ...newItems[index], [field]: updatedValue };
+      
+      // Regenerate ID if key fields change
+      if (field === 'meaning' || field === 'sentence') {
+          item.id = generateId(item.meaning, item.sentence);
+      }
+      
+      newItems[index] = item;
+      onUpdate(newItems);
+  };
+
+  const handleDelete = (index: number) => {
+      const newItems = items.filter((_, i) => i !== index);
+      onUpdate(newItems);
+  };
+
   return (
     <div className="absolute inset-x-0 top-16 z-50 mx-4 p-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur shadow-2xl rounded-2xl border border-blue-100 dark:border-gray-700 animate-in fade-in slide-in-from-bottom-4 flex flex-col max-h-[80vh]">
       <div className="flex justify-between items-start mb-2 flex-none">
@@ -23,18 +49,55 @@ export function ConfirmationModal({ items, onConfirm, onCancel }: ConfirmationMo
          <span className="text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full">
             {items.length} items
          </span>
+         <span className="text-xs text-gray-400">Review and edit before adding.</span>
       </div>
 
       <div className="flex-1 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 p-2 space-y-2 mb-4 min-h-0">
          {items.map((item, i) => (
-             <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-sm">
-                 <div className="font-bold text-gray-800 dark:text-gray-200">{item.sentence}</div>
-                 <div className="text-gray-500 dark:text-gray-400">{item.meaning}</div>
-                 <div className="flex gap-1 mt-1 flex-wrap">
-                    {item.tags.map(t => <span key={t} className="text-[10px] bg-gray-200 dark:bg-gray-600 px-1 rounded text-gray-600 dark:text-gray-300">{t}</span>)}
+             <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-sm group relative">
+                 <div className="pr-8 space-y-1">
+                     <input 
+                        className="w-full font-bold text-gray-800 dark:text-gray-200 bg-transparent border-b border-transparent focus:border-blue-500 outline-none transition-colors"
+                        value={item.sentence}
+                        onChange={(e) => handleChange(i, 'sentence', e.target.value)}
+                        placeholder="Sentence"
+                     />
+                     <input 
+                        className="w-full text-gray-500 dark:text-gray-400 bg-transparent border-b border-transparent focus:border-blue-500 outline-none transition-colors"
+                        value={item.meaning}
+                        onChange={(e) => handleChange(i, 'meaning', e.target.value)}
+                        placeholder="Meaning"
+                     />
+                     <input 
+                        className="w-full text-xs text-gray-400 bg-transparent border-b border-transparent focus:border-blue-500 outline-none transition-colors"
+                        value={item.pronunciation || ''}
+                        onChange={(e) => handleChange(i, 'pronunciation', e.target.value)}
+                        placeholder="Pronunciation (optional)"
+                     />
+                     <div className="flex items-center gap-2 mt-1">
+                        <Tag size={12} className="text-gray-400 flex-none" />
+                        <input 
+                            className="flex-1 text-[10px] text-gray-500 dark:text-gray-400 bg-transparent border-b border-transparent focus:border-blue-500 outline-none transition-colors"
+                            value={item.tags.join(', ')}
+                            onChange={(e) => handleChange(i, 'tags', e.target.value)}
+                            placeholder="Tags (comma separated)"
+                        />
+                     </div>
                  </div>
+                 <button 
+                    onClick={() => handleDelete(i)}
+                    className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+                    title="Remove item"
+                 >
+                     <Trash2 size={16} />
+                 </button>
              </div>
          ))}
+         {items.length === 0 && (
+             <div className="p-8 text-center text-gray-400">
+                 No items left.
+             </div>
+         )}
       </div>
 
       <div className="flex gap-3 h-10 flex-none">
@@ -46,7 +109,8 @@ export function ConfirmationModal({ items, onConfirm, onCancel }: ConfirmationMo
          </button>
          <button 
             onClick={onConfirm} 
-            className="flex-1 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 text-sm"
+            disabled={items.length === 0}
+            className="flex-1 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
          >
              <Check size={16}/> Confirm & Add
          </button>
