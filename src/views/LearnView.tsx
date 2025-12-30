@@ -560,9 +560,9 @@ export function LearnView() {
             </div>
           </div>
 
-          <div className="flex-1 flex items-center justify-center perspective-1000 min-h-0">
+          <div className="flex-1 flex flex-col items-center perspective-1000 min-h-0 overflow-y-auto">
             <div 
-              className="relative w-full max-w-md cursor-pointer group"
+              className="relative w-full max-w-md cursor-pointer group my-auto"
               onClick={() => {
                 if (!isFlipped) speak(displayList[currentIndex].sentence);
                 setIsFlipped(!isFlipped);
@@ -572,7 +572,7 @@ export function LearnView() {
                 className={`w-full transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''} grid grid-cols-1 grid-rows-1`}
               >
                 {/* Front (Sentence) */}
-                <div className="col-start-1 row-start-1 backface-hidden bg-blue-50 dark:bg-gray-800 rounded-3xl shadow-xl border border-blue-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[300px] relative">
+                <div className="col-start-1 row-start-1 backface-hidden bg-blue-50 dark:bg-gray-800 rounded-3xl shadow-xl border border-blue-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[200px] relative">
                   <div className="absolute top-4 right-4 flex gap-1">
                     {status.completedIds.includes(displayList[currentIndex].id) && (
                       <CheckCircle className="text-green-500" size={24} />
@@ -647,7 +647,7 @@ export function LearnView() {
                 </div>
 
                 {/* Back (Meaning) */}
-                <div className="col-start-1 row-start-1 backface-hidden rotate-y-180 bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[300px] relative">
+                <div className="col-start-1 row-start-1 backface-hidden rotate-y-180 bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[200px] relative">
                   <div className="absolute top-4 right-4 flex gap-1">
                     {status.completedIds.includes(displayList[currentIndex].id) && (
                       <CheckCircle className="text-green-500" size={24} />
