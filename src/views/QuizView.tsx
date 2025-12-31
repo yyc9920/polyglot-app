@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Brain, 
   Filter, 
@@ -11,11 +11,13 @@ import { useVocabAppContext } from '../context/VocabContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { FunButton } from '../components/FunButton';
 import { triggerConfetti } from '../lib/fun-utils';
+import { VocabCard } from '../components/VocabCard';
 
 // --- Enhanced Quiz View ---
 export function QuizView() {
-  const { vocabList, status, setStatus } = useVocabAppContext();
+  const { vocabList, status, setStatus, voiceURI } = useVocabAppContext();
 
+  const [isFlipped, setIsFlipped] = useState(false);
   const [isPlaying, setIsPlaying] = useLocalStorage<boolean>('quizIsPlaying', false);
   const [quizQueue, setQuizQueue] = useLocalStorage<QuizItem[]>('quizQueue', []);
   const [currentIndex, setCurrentIndex] = useLocalStorage<number>('quizCurrentIndex', 0);
@@ -86,6 +88,16 @@ export function QuizView() {
       hint: masked, // Show sentence with blank as hint
       answerText: target // User answers the missing word
     };
+  };
+
+  const speak = (text: string) => {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (voiceURI) {
+      const voice = window.speechSynthesis.getVoices().find(v => v.voiceURI === voiceURI);
+      if (voice) utterance.voice = voice;
+    }
+    window.speechSynthesis.speak(utterance);
   };
 
   const startQuiz = () => {
@@ -176,6 +188,7 @@ export function QuizView() {
       setCurrentIndex((prev: number) => prev + 1);
       setInput('');
       setFeedback('none');
+      setIsFlipped(false);
     } else {
       alert('퀴즈가 종료되었습니다!');
       setIsPlaying(false);
@@ -333,29 +346,60 @@ export function QuizView() {
             Check Answer
           </FunButton>
         ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-            {feedback === 'incorrect' && (
-              <div className="p-4 bg-red-100 dark:bg-red-900/30 rounded-xl mb-4 text-center">
-                <p className="text-xs text-red-500 font-bold uppercase mb-1">Correct Answer</p>
-                <p className="text-lg font-bold text-red-700 dark:text-red-300">{currentItem.answerText}</p>
-                {currentItem.type !== 'interpretation' && currentItem.type !== 'cloze' && (
-                   <p className="text-sm text-red-600/70 mt-1">{currentItem.pronunciation}</p>
-                )}
-                {currentItem.type === 'cloze' && (
-                   <p className="text-sm text-red-600/70 mt-1">Full: {currentItem.sentence}</p>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 space-y-4">
+            <div className={`p-4 rounded-xl border-2 flex flex-col gap-4 ${
+              feedback === 'correct' 
+                ? 'bg-green-50 dark:bg-green-900/10 border-green-500 shadow-lg shadow-green-100 dark:shadow-none' 
+                : 'bg-red-50 dark:bg-red-900/10 border-red-500 shadow-lg shadow-red-100 dark:shadow-none'
+            }`}>
+              <div className="flex justify-between items-center px-2">
+                <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-full ${
+                  feedback === 'correct' 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-red-500 text-white'
+                }`}>
+                  {feedback === 'correct' ? '✨ Perfect' : '📚 Learning'}
+                </span>
+                {feedback === 'incorrect' && (
+                  <span className="text-xs font-bold text-red-500/80 uppercase tracking-wider">
+                    Correct: {currentItem.answerText}
+                  </span>
                 )}
               </div>
-            )}
-            {feedback === 'correct' && (
-               <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-xl mb-4 text-center text-green-700 dark:text-green-300 font-bold">
-                 Correct! 🎉
-               </div>
-            )}
+
+              <div 
+                className="relative w-full cursor-pointer group perspective-1000"
+                onClick={() => {
+                  if (!isFlipped) speak(currentItem.sentence);
+                  setIsFlipped(!isFlipped);
+                }}
+              >
+                <div 
+                  className={`w-full transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''} grid grid-cols-1 grid-rows-1`}
+                >
+                  <VocabCard 
+                    item={currentItem}
+                    status={status}
+                    side="front"
+                    onSpeak={() => speak(currentItem.sentence)}
+                    className="col-start-1 row-start-1 backface-hidden shadow-none border-none bg-white/50 dark:bg-gray-800/50 min-h-0 py-4"
+                  />
+                  <VocabCard 
+                    item={currentItem}
+                    status={status}
+                    side="back"
+                    className="col-start-1 row-start-1 backface-hidden rotate-y-180 shadow-none border-none bg-white/50 dark:bg-gray-800/50 min-h-0 py-4"
+                  />
+                </div>
+              </div>
+            </div>
+
             <FunButton 
               type="button" 
               onClick={nextQuestion}
               fullWidth
               variant={feedback === 'correct' ? 'success' : 'danger'}
+              className="py-4 shadow-md"
             >
               Next Question &rarr;
             </FunButton>

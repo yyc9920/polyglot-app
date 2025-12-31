@@ -10,7 +10,6 @@ import {
   ChevronRight,
   Search,
   Sparkles,
-  MessageCircleQuestion,
   Loader2,
   BookOpen,
   Save,
@@ -26,6 +25,7 @@ import { callGemini } from '../lib/gemini';
 import { useVocabAppContext } from '../context/VocabContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { FunButton } from '../components/FunButton';
+import { VocabCard } from '../components/VocabCard';
 
 // --- Learn View ---
 export function LearnView() {
@@ -574,108 +574,23 @@ export function LearnView() {
                 className={`w-full transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''} grid grid-cols-1 grid-rows-1`}
               >
                 {/* Front (Sentence) */}
-                <div className="col-start-1 row-start-1 backface-hidden bg-blue-50 dark:bg-gray-800 rounded-3xl shadow-xl border border-blue-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[200px] relative">
-                  <div className="absolute top-4 right-4 flex gap-1">
-                    {status.completedIds.includes(displayList[currentIndex].id) && (
-                      <CheckCircle className="text-green-500" size={24} />
-                    )}
-                    {status.incorrectIds.includes(displayList[currentIndex].id) && (
-                      <AlertCircle className="text-red-500" size={24} />
-                    )}
-                  </div>
-                  <div className="flex-none mb-4">
-                    <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider">Expression</span>
-                  </div>
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    <h2 className="text-2xl md:text-3xl font-bold break-words w-full text-blue-900 dark:text-blue-100 leading-snug">
-                      {displayList[currentIndex].sentence}
-                    </h2>
-                    {displayList[currentIndex].pronunciation && (
-                      <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium text-lg break-words w-full">{displayList[currentIndex].pronunciation}</p>
-                    )}
-                    <div className="flex gap-2 mt-4 flex-wrap justify-center w-full">
-                       {displayList[currentIndex].tags.map(tag => (
-                         <span key={tag} className="text-xs px-2 py-1 bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 text-gray-500 flex-shrink-0">
-                           #{tag}
-                         </span>
-                       ))}
-                    </div>
-                    {/* Memo Indicator / Button */}
-                    {displayList[currentIndex].memo && (
-                        <button 
-                            type="button"
-                            onClick={handleOpenMemo}
-                            className="mt-4 flex items-center gap-1 text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-full text-xs font-bold border border-yellow-200 dark:border-yellow-900/50 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors"
-                        >
-                            <BookOpen size={12} /> View Memo
-                        </button>
-                    )}
-                  </div>
-                  <div className="flex-none mt-4 pt-2">
-                    <div className="flex justify-center gap-3">
-                      <button 
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); speak(displayList[currentIndex].sentence); }}
-                        className="p-4 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 active:scale-95 transition-all"
-                        title="Speak"
-                      >
-                        <Volume2 size={24} />
-                      </button>
-                      
-                      {displayList[currentIndex].memo && (
-                        <button 
-                          type="button"
-                          onClick={handleOpenMemo}
-                          className="p-4 bg-yellow-500 text-white rounded-full shadow-lg hover:bg-yellow-600 active:scale-95 transition-all animate-in zoom-in duration-300"
-                          title="View Memo"
-                        >
-                          <BookOpen size={24} />
-                        </button>
-                      )}
-
-                      <button 
-                        type="button"
-                        onClick={handleAiExplain}
-                        className="p-4 bg-white dark:bg-gray-700 text-blue-500 dark:text-blue-300 rounded-full shadow-lg border border-blue-100 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-600 active:scale-95 transition-all"
-                        title="AI Explain"
-                      >
-                        <MessageCircleQuestion size={24} />
-                      </button>
-                    </div>
-                    <div className="text-gray-400 text-xs animate-pulse mt-4">
-                      Tap to see meaning
-                    </div>
-                  </div>
-                </div>
+                <VocabCard
+                  item={displayList[currentIndex]}
+                  status={status}
+                  side="front"
+                  onSpeak={() => speak(displayList[currentIndex].sentence)}
+                  onAiExplain={handleAiExplain}
+                  onOpenMemo={handleOpenMemo}
+                  className="col-start-1 row-start-1 backface-hidden"
+                />
 
                 {/* Back (Meaning) */}
-                <div className="col-start-1 row-start-1 backface-hidden rotate-y-180 bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[200px] relative">
-                  <div className="absolute top-4 right-4 flex gap-1">
-                    {status.completedIds.includes(displayList[currentIndex].id) && (
-                      <CheckCircle className="text-green-500" size={24} />
-                    )}
-                    {status.incorrectIds.includes(displayList[currentIndex].id) && (
-                      <AlertCircle className="text-red-500" size={24} />
-                    )}
-                  </div>
-                  <div className="flex-none mb-4">
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Meaning</span>
-                  </div>
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    <h2 className="text-2xl md:text-3xl font-bold break-words w-full leading-snug">
-                      {displayList[currentIndex].meaning}
-                    </h2>
-                    <div className="flex gap-2 mt-6 flex-wrap justify-center w-full">
-                       {status.completedIds.includes(displayList[currentIndex].id) && (
-                         <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full font-medium flex-shrink-0">Learned</span>
-                       )}
-                       {status.incorrectIds.includes(displayList[currentIndex].id) && (
-                         <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs rounded-full font-medium flex-shrink-0">Review</span>
-                       )}
-                    </div>
-                  </div>
-                  <div className="flex-none mt-20"></div> 
-                </div>
+                <VocabCard
+                  item={displayList[currentIndex]}
+                  status={status}
+                  side="back"
+                  className="col-start-1 row-start-1 backface-hidden rotate-y-180"
+                />
               </div>
             </div>
           </div>

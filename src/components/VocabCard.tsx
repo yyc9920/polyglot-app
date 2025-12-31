@@ -1,0 +1,131 @@
+import { CheckCircle, AlertCircle, Volume2, BookOpen, MessageCircleQuestion } from 'lucide-react';
+import type { VocabItem, LearningStatus } from '../types';
+
+interface VocabCardProps {
+  item: VocabItem;
+  status: LearningStatus;
+  side: 'front' | 'back';
+  onSpeak?: () => void;
+  onAiExplain?: (e: any) => void;
+  onOpenMemo?: (e: any) => void;
+  className?: string;
+}
+
+export function VocabCard({ 
+  item, 
+  status, 
+  side, 
+  onSpeak, 
+  onAiExplain, 
+  onOpenMemo,
+  className = ""
+}: VocabCardProps) {
+  const isCompleted = status.completedIds.includes(item.id);
+  const isIncorrect = status.incorrectIds.includes(item.id);
+
+  if (side === 'front') {
+    return (
+      <div className={`bg-blue-50 dark:bg-gray-800 rounded-3xl shadow-xl border border-blue-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[200px] relative ${className}`}>
+        <div className="absolute top-4 right-4 flex gap-1">
+          {isCompleted && <CheckCircle className="text-green-500" size={24} />}
+          {isIncorrect && <AlertCircle className="text-red-500" size={24} />}
+        </div>
+        
+        <div className="flex-none mb-4">
+          <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider">Expression</span>
+        </div>
+        
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <h2 className="text-2xl md:text-3xl font-bold break-words w-full text-blue-900 dark:text-blue-100 leading-snug">
+            {item.sentence}
+          </h2>
+          {item.pronunciation && (
+            <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium text-lg break-words w-full">
+              {item.pronunciation}
+            </p>
+          )}
+          <div className="flex gap-2 mt-4 flex-wrap justify-center w-full">
+             {item.tags.map(tag => (
+               <span key={tag} className="text-xs px-2 py-1 bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 text-gray-500 flex-shrink-0">
+                 #{tag}
+               </span>
+             ))}
+          </div>
+          
+          {item.memo && onOpenMemo && (
+              <button 
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onOpenMemo(e); }}
+                  className="mt-4 flex items-center gap-1 text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-full text-xs font-bold border border-yellow-200 dark:border-yellow-900/50 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors"
+              >
+                  <BookOpen size={12} /> View Memo
+              </button>
+          )}
+        </div>
+
+        {(onSpeak || onAiExplain) && (
+          <div className="flex-none mt-4 pt-2">
+            <div className="flex justify-center gap-3">
+              {onSpeak && (
+                <button 
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onSpeak(); }}
+                  className="p-4 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 active:scale-95 transition-all"
+                >
+                  <Volume2 size={24} />
+                </button>
+              )}
+              
+              {item.memo && onOpenMemo && (
+                <button 
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onOpenMemo(e); }}
+                  className="p-4 bg-yellow-500 text-white rounded-full shadow-lg hover:bg-yellow-600 active:scale-95 transition-all"
+                >
+                  <BookOpen size={24} />
+                </button>
+              )}
+
+              {onAiExplain && (
+                <button 
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onAiExplain(e); }}
+                  className="p-4 bg-white dark:bg-gray-700 text-blue-500 dark:text-blue-300 rounded-full shadow-lg border border-blue-100 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-600 active:scale-95 transition-all"
+                >
+                  <MessageCircleQuestion size={24} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col p-6 text-center min-h-[200px] relative ${className}`}>
+      <div className="absolute top-4 right-4 flex gap-1">
+        {isCompleted && <CheckCircle className="text-green-500" size={24} />}
+        {isIncorrect && <AlertCircle className="text-red-500" size={24} />}
+      </div>
+      
+      <div className="flex-none mb-4">
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Meaning</span>
+      </div>
+      
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <h2 className="text-2xl md:text-3xl font-bold break-words w-full leading-snug">
+          {item.meaning}
+        </h2>
+        <div className="flex gap-2 mt-6 flex-wrap justify-center w-full">
+           {isCompleted && (
+             <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full font-medium flex-shrink-0">Learned</span>
+           )}
+           {isIncorrect && (
+             <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs rounded-full font-medium flex-shrink-0">Review</span>
+           )}
+        </div>
+      </div>
+    </div>
+  );
+}
