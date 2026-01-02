@@ -6,6 +6,7 @@ import {
   Moon, 
   Sun, 
   Sparkles,
+  Music,
 } from 'lucide-react';
 import { GlobalStyles, NavButton } from './components/ui';
 import useTheme from './hooks/useTheme';
@@ -14,6 +15,7 @@ import { LearnView } from './views/LearnView';
 import { QuizView } from './views/QuizView';
 import { BuilderView } from './views/BuilderView';
 import { SettingsView } from './views/SettingsView';
+import { MusicLearnView } from './views/MusicLearnView';
 
 function AppContent() {
   const { currentView, setCurrentView } = useVocabAppContext();
@@ -42,6 +44,7 @@ function AppContent() {
           {currentView === 'quiz' && <QuizView />}
           {currentView === 'builder' && <BuilderView />}
           {currentView === 'settings' && <SettingsView />}
+          {currentView === 'music' && <MusicLearnView />}
         </div>
       </main>
 
@@ -53,6 +56,12 @@ function AppContent() {
             onClick={() => setCurrentView('learn')} 
             icon={<BookOpen size={24} />} 
             label="학습" 
+          />
+          <NavButton 
+            active={currentView === 'music'} 
+            onClick={() => setCurrentView('music')} 
+            icon={<Music size={24} />} 
+            label="뮤직" 
           />
           <NavButton 
             active={currentView === 'quiz'} 

@@ -1,4 +1,5 @@
-import { CheckCircle, AlertCircle, Volume2, BookOpen, MessageCircleQuestion } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle, AlertCircle, Volume2, BookOpen, MessageCircleQuestion, Music } from 'lucide-react';
 import type { VocabItem, LearningStatus } from '../types';
 
 interface VocabCardProps {
@@ -20,6 +21,7 @@ export function VocabCard({
   onOpenMemo,
   className = ""
 }: VocabCardProps) {
+  const [showSongInfo, setShowSongInfo] = useState(false);
   const isCompleted = status.completedIds.includes(item.id);
   const isIncorrect = status.incorrectIds.includes(item.id);
 
@@ -31,6 +33,18 @@ export function VocabCard({
           {isIncorrect && <AlertCircle className="text-red-500" size={24} />}
         </div>
         
+        {showSongInfo && item.song && (
+          <div 
+             className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 rounded-3xl z-20 text-white transition-opacity cursor-pointer"
+             onClick={(e) => { e.stopPropagation(); setShowSongInfo(false); }}
+          >
+             <img src={item.song.thumbnailUrl} alt="Thumbnail" className="w-48 h-32 object-cover rounded-lg mb-4 shadow-lg border border-gray-700" />
+             <h3 className="font-bold text-xl text-center mb-1 line-clamp-2">{item.song.title}</h3>
+             <p className="text-gray-400 font-medium mb-8">{item.song.artist}</p>
+             <p className="text-xs text-gray-500">(Tap to close)</p>
+          </div>
+        )}
+
         <div className="flex-none mb-4">
           <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider">Expression</span>
         </div>
@@ -93,6 +107,16 @@ export function VocabCard({
                   className="p-4 bg-white dark:bg-gray-700 text-blue-500 dark:text-blue-300 rounded-full shadow-lg border border-blue-100 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-600 active:scale-95 transition-all"
                 >
                   <MessageCircleQuestion size={24} />
+                </button>
+              )}
+
+              {item.song && (
+                <button 
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setShowSongInfo(!showSongInfo); }}
+                  className="p-4 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 active:scale-95 transition-all"
+                >
+                  <Music size={24} />
                 </button>
               )}
             </div>

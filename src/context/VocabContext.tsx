@@ -1,8 +1,29 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode, type Dispatch, type SetStateAction } from 'react';
-import type { LearningStatus, VocabItem, ViewMode } from '../types';
+import type { LearningStatus, VocabItem, ViewMode, SongMaterials } from '../types';
 import { SAMPLE_DATA } from '../constants';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { parseCSV, generateId } from '../lib/utils';
+import type { YouTubeVideo } from '../lib/youtube';
+
+export interface MusicViewState {
+  query: string;
+  results: YouTubeVideo[];
+  selectedVideo: YouTubeVideo | null;
+  materials: SongMaterials | null;
+  isLoading: boolean;
+  isSearching: boolean;
+  activeTab: 'lyrics' | 'vocab';
+}
+
+const initialMusicState: MusicViewState = {
+  query: '',
+  results: [],
+  selectedVideo: null,
+  materials: null,
+  isLoading: false,
+  isSearching: false,
+  activeTab: 'lyrics',
+};
 
 interface VocabAppContextType {
   vocabList: VocabItem[];
@@ -13,12 +34,16 @@ interface VocabAppContextType {
   setVoiceURI: Dispatch<SetStateAction<string | null>>;
   apiKey: string;
   setApiKey: Dispatch<SetStateAction<string>>;
+  youtubeApiKey: string;
+  setYoutubeApiKey: Dispatch<SetStateAction<string>>;
   savedUrls: string[];
   setSavedUrls: Dispatch<SetStateAction<string[]>>;
   currentView: ViewMode;
   setCurrentView: Dispatch<SetStateAction<ViewMode>>;
   reviewMode: boolean;
   setReviewMode: Dispatch<SetStateAction<boolean>>;
+  musicState: MusicViewState;
+  setMusicState: Dispatch<SetStateAction<MusicViewState>>;
   handleReset: () => void;
   handleDeleteAllData: () => void;
   syncUrl: (url: string) => Promise<void>;
@@ -36,10 +61,12 @@ export const VocabAppProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [status, setStatus] = useLocalStorage<LearningStatus>('learningStatus', { completedIds: [], incorrectIds: [] });
   const [voiceURI, setVoiceURI] = useLocalStorage<string | null>('ttsVoiceURI', null);
   const [apiKey, setApiKey] = useLocalStorage<string>('geminiApiKey', '');
+  const [youtubeApiKey, setYoutubeApiKey] = useLocalStorage<string>('youtubeApiKey', '');
   
   const [savedUrls, setSavedUrls] = useLocalStorage<string[]>('csvSourceUrls', []);
   const [currentView, setCurrentView] = useState<ViewMode>('learn');
   const [reviewMode, setReviewMode] = useState(false);
+  const [musicState, setMusicState] = useState<MusicViewState>(initialMusicState);
 
   // Migration for old savedUrl
   const [oldSavedUrl, setOldSavedUrl] = useLocalStorage<string>('csvSourceUrl', '');
@@ -166,12 +193,16 @@ export const VocabAppProvider: React.FC<{ children: ReactNode }> = ({ children }
     setVoiceURI,
     apiKey,
     setApiKey,
+    youtubeApiKey,
+    setYoutubeApiKey,
     savedUrls,
     setSavedUrls,
     currentView,
     setCurrentView,
     reviewMode,
     setReviewMode,
+    musicState,
+    setMusicState,
     handleReset,
     handleDeleteAllData,
     syncUrl,

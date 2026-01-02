@@ -17,7 +17,9 @@ import {
   Upload,
   PlayCircle,
   Plus,
-  Link as LinkIcon
+  Link as LinkIcon,
+  ExternalLink,
+  HelpCircle
 } from 'lucide-react';
 import { useVocabAppContext } from '../context/VocabContext';
 import { FunButton } from '../components/FunButton';
@@ -32,6 +34,8 @@ export function SettingsView() {
     setStatus,
     apiKey, 
     setApiKey,
+    youtubeApiKey,
+    setYoutubeApiKey,
     vocabList,
     setVocabList,
     savedUrls,
@@ -43,6 +47,7 @@ export function SettingsView() {
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [showYoutubeApiKey, setShowYoutubeApiKey] = useState(false);
   const [voiceFilter, setVoiceFilter] = useState('');
   
   // Progress Filter
@@ -51,6 +56,10 @@ export function SettingsView() {
   // URL Management
   const [newUrl, setNewUrl] = useState('');
   const [isSyncing, setIsSyncing] = useState<string | null>(null);
+
+  // Guide Modals
+  const [showCSVGuide, setShowCSVGuide] = useState(false);
+  const [showAPIKeyGuide, setShowAPIKeyGuide] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -273,10 +282,19 @@ export function SettingsView() {
       </section>
 
       {/* 2. Content Sources */}
-      <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-800 dark:text-gray-100">
-            <LinkIcon className="text-indigo-500" /> Content Sources (CSV)
-          </h3>
+      <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 relative">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800 dark:text-gray-100">
+              <LinkIcon className="text-indigo-500" /> Content Sources (CSV)
+            </h3>
+            <button 
+              onClick={() => setShowCSVGuide(true)}
+              className="p-1 text-gray-400 hover:text-indigo-500 transition-colors"
+              title="CSV Format Guide"
+            >
+              <HelpCircle size={20} />
+            </button>
+          </div>
           <div className="space-y-4">
               <div className="space-y-2">
                   {savedUrls.length === 0 && <p className="text-sm text-gray-400 italic">No CSV sources added.</p>}
@@ -319,12 +337,31 @@ export function SettingsView() {
       </section>
 
       {/* 3. AI Configuration */}
-      <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-        <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-800 dark:text-gray-100">
-          <Settings className="text-purple-500" /> AI Configuration
-        </h3>
+      <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 relative">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800 dark:text-gray-100">
+            <Settings className="text-purple-500" /> AI Configuration
+          </h3>
+          <button 
+            onClick={() => setShowAPIKeyGuide(true)}
+            className="p-1 text-gray-400 hover:text-purple-500 transition-colors"
+            title="API Key Setup Guide"
+          >
+            <HelpCircle size={20} />
+          </button>
+        </div>
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Google Gemini API Key</label>
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Google Gemini API Key</label>
+            <a 
+              href="https://aistudio.google.com/api-keys" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-purple-500 hover:text-purple-600 flex items-center gap-1 font-medium"
+            >
+              Get Key <ExternalLink size={12} />
+            </a>
+          </div>
           <div className="flex gap-2 relative">
              <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
              <input 
@@ -343,6 +380,39 @@ export function SettingsView() {
           </div>
           <p className="text-xs text-gray-400 mt-1">
             Your key is stored locally in your browser and used only for AI features.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2 mt-4">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-400">YouTube Data API Key</label>
+            <a 
+              href="https://console.developers.google.com/apis" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1 font-medium"
+            >
+              Get Key <ExternalLink size={12} />
+            </a>
+          </div>
+          <div className="flex gap-2 relative">
+             <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+             <input 
+               type={showYoutubeApiKey ? "text" : "password"}
+               placeholder="Enter your YouTube API Key..." 
+               value={youtubeApiKey} 
+               onChange={(e) => setYoutubeApiKey(e.target.value)}
+               className="flex-1 pl-10 pr-10 p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+             />
+             <button 
+               onClick={() => setShowYoutubeApiKey(!showYoutubeApiKey)}
+               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+             >
+               {showYoutubeApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+             </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">
+            Required for searching music videos.
           </p>
         </div>
       </section>
@@ -433,6 +503,95 @@ export function SettingsView() {
           </FunButton>
         </div>
       </section>
+
+      {/* CSV Format Guide Modal */}
+      {showCSVGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+              <h4 className="font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <LinkIcon size={20} className="text-indigo-500" /> CSV Format Guide
+              </h4>
+              <button onClick={() => setShowCSVGuide(false)} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Your CSV file should follow this structure. The first row (header) is optional but recommended.
+              </p>
+              <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+                <code className="text-xs text-indigo-600 dark:text-indigo-400 font-mono break-all">
+                  sentence,meaning,pronunciation,tags
+                </code>
+              </div>
+              <div className="space-y-2">
+                <h5 className="font-bold text-sm text-gray-700 dark:text-gray-200">Example Rows:</h5>
+                <pre className="text-[10px] bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800 text-gray-600 dark:text-gray-400 font-mono overflow-x-auto">
+{`こんにちは,Hello,Konnichiwa,"greeting,basic"
+ありがとう,Thank you,Arigatou,"greeting,polite"
+猫 (ねこ),Cat,Neko,"animal,N5"`}
+                </pre>
+              </div>
+              <ul className="text-xs text-gray-500 dark:text-gray-400 list-disc pl-4 space-y-1">
+                <li>Fields are separated by commas.</li>
+                <li>If a field contains a comma (like tags), wrap it in double quotes.</li>
+                <li>The <code className="font-mono">pronunciation</code> and <code className="font-mono">tags</code> fields are optional.</li>
+              </ul>
+            </div>
+            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 flex justify-end">
+              <FunButton onClick={() => setShowCSVGuide(false)} variant="primary" className="px-6">Got it!</FunButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* API Key Guide Modal */}
+      {showAPIKeyGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+              <h4 className="font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <Key size={20} className="text-purple-500" /> API Key Setup Guide
+              </h4>
+              <button onClick={() => setShowAPIKeyGuide(false)} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="space-y-3">
+                <h5 className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-2">
+                  1. Google Gemini API
+                </h5>
+                <ol className="text-sm text-gray-600 dark:text-gray-300 list-decimal pl-4 space-y-2">
+                  <li>Go to <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline inline-flex items-center gap-1">Google AI Studio <ExternalLink size={12}/></a></li>
+                  <li>Sign in with your Google account.</li>
+                  <li>Click <strong>"Create API key"</strong> then <strong>"Create API key in new project"</strong>.</li>
+                  <li>Copy the key and paste it into the Gemini API field.</li>
+                </ol>
+              </div>
+
+              <div className="h-px bg-gray-100 dark:bg-gray-700" />
+
+              <div className="space-y-3">
+                <h5 className="font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                  2. YouTube Data API
+                </h5>
+                <ol className="text-sm text-gray-600 dark:text-gray-300 list-decimal pl-4 space-y-2">
+                  <li>Go to <a href="https://console.developers.google.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline inline-flex items-center gap-1">Google Cloud Console <ExternalLink size={12}/></a></li>
+                  <li>Create a new project (or select an existing one).</li>
+                  <li>Go to <strong>"Enabled APIs & Services"</strong> and click <strong>"+ ENABLE APIS AND SERVICES"</strong>.</li>
+                  <li>Search for <strong>"YouTube Data API v3"</strong> and enable it.</li>
+                  <li>Go to <strong>"Credentials"</strong> &rarr; <strong>"Create Credentials"</strong> &rarr; <strong>"API key"</strong>.</li>
+                </ol>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 flex justify-end">
+              <FunButton onClick={() => setShowAPIKeyGuide(false)} variant="primary" className="px-6">Got it!</FunButton>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

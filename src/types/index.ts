@@ -1,5 +1,19 @@
 
 // Main vocabulary item structure
+export interface SongData {
+  videoId: string;
+  title: string;
+  artist: string;
+  thumbnailUrl: string;
+}
+
+export interface SongMaterials {
+  lyrics: { original: string; translated: string }[];
+  phrases: { meaning: string; sentence: string; pronunciation: string }[];
+  artist: string;
+  title: string;
+}
+
 export interface VocabItem {
   id: string;
   meaning: string;
@@ -7,6 +21,7 @@ export interface VocabItem {
   pronunciation?: string;
   tags: string[];
   memo?: string;
+  song?: SongData;
 }
 
 // Extended Quiz Item to support multiple types
@@ -24,4 +39,4 @@ export interface LearningStatus {
   incorrectIds: string[];
 }
 
-export type ViewMode = 'learn' | 'quiz' | 'builder' | 'settings';
+export type ViewMode = 'learn' | 'quiz' | 'builder' | 'settings' | 'music';
