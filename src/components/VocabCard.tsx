@@ -66,7 +66,7 @@ export function VocabCard({
           <h2 className="text-2xl md:text-3xl font-bold break-words w-full text-blue-900 dark:text-blue-100 leading-snug">
             {item.sentence}
           </h2>
-          {item.pronunciation && (
+          {item.pronunciation && !item.tags.some(t => t.toLowerCase() === 'english' || t === '영어') && (
             <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium text-lg break-words w-full">
               {item.pronunciation}
             </p>

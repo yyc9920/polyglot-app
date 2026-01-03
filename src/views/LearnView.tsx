@@ -192,8 +192,9 @@ export function LearnView() {
     setIsLoadingAi(true);
     try {
       const item = displayList[currentIndex];
+      const isEnglish = item.tags.some(t => t.toLowerCase() === 'english' || t === '영어');
       const tagsStr = item.tags && item.tags.length > 0 ? `Tags: ${item.tags.join(', ')}` : '';
-      const pronStr = item.pronunciation ? `Pronunciation: ${item.pronunciation}` : '';
+      const pronStr = (item.pronunciation && !isEnglish) ? `Pronunciation: ${item.pronunciation}` : '';
       
       const prompt = `
       Analyze this sentence as a friendly language tutor.
@@ -444,7 +445,7 @@ export function LearnView() {
                                <h4 className="font-bold text-gray-800 dark:text-gray-200 mb-1 text-lg">{item.sentence}</h4>
                                
                                <div className="flex flex-wrap gap-2 mb-2">
-                                  {item.pronunciation && (
+                                  {item.pronunciation && !item.tags.some(t => t.toLowerCase() === 'english' || t === '영어') && (
                                     <span className="text-xs text-gray-500 font-mono bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">/{item.pronunciation}/</span>
                                   )}
                                   {item.tags.map(tag => (
