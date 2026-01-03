@@ -347,12 +347,13 @@ export function QuizView() {
 
   if (!isPlaying) {
     return (
-      <div className="h-full flex flex-col justify-center gap-6 p-2">
-        <div className="text-center mb-4">
-          <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
-            <Brain size={40} />
-          </div>
-          <h2 className="text-2xl font-bold">Quiz Setup</h2>
+      <div className="h-full overflow-y-auto">
+        <div className="min-h-full flex flex-col justify-center gap-6 p-4 pb-20">
+          <div className="text-center mb-4">
+            <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
+              <Brain size={40} />
+            </div>
+            <h2 className="text-2xl font-bold">Quiz Setup</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">Customize your practice session</p>
         </div>
         
@@ -466,6 +467,7 @@ export function QuizView() {
         >
           Start Quiz
         </FunButton>
+        </div>
       </div>
     );
   }
@@ -518,7 +520,7 @@ export function QuizView() {
   const currentItem = quizQueue[currentIndex];
 
   return (
-    <div className="flex flex-col h-full max-w-sm mx-auto pt-8">
+    <div className="flex flex-col h-full max-w-sm mx-auto pt-12 px-4 overflow-y-auto pb-20">
       <div className="flex justify-between items-center mb-2">
         <button 
           onClick={() => setIsPlaying(false)}
