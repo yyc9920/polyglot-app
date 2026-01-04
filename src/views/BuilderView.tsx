@@ -8,7 +8,9 @@ import {
   Loader2,
   Tag,
   X,
-  Save
+  Save,
+  Pencil,
+  FileText
 } from 'lucide-react';
 import type { VocabItem } from '../types';
 import { callGemini } from '../lib/gemini';
@@ -27,6 +29,10 @@ export function BuilderView() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showDeleteInput, setShowDeleteInput] = useState(false);
   const [deleteTagsInput, setDeleteTagsInput] = useState('');
+
+  // CSV Edit Modal State
+  const [showCsvEditor, setShowCsvEditor] = useState(false);
+  const [csvEditorContent, setCsvEditorContent] = useState('');
 
   // Edit Modal State
   const [editingItem, setEditingItem] = useState<VocabItem | null>(null);
@@ -210,6 +216,62 @@ Make sure that there isn't format error. Return ONLY the CSV content, no introdu
     }
   };
 
+  const handleEditCsv = () => {
+    const header = ['Meaning', 'Sentence', 'Pronunciation', 'Tags'];
+    const rows = vocabList.map(v => [
+      `"${v.meaning}"`, 
+      `"${v.sentence}"`, 
+      `"${v.pronunciation || ''}"`, 
+      `"${v.tags.join(', ')}"`
+    ]);
+    const content = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+    setCsvEditorContent(content);
+    setShowCsvEditor(true);
+  };
+
+  const handleSaveCsvEditor = () => {
+    const cleanText = csvEditorContent.replace(/^\uFEFF/, '').trim();
+    if (!cleanText) {
+        if(confirm("Content is empty. This will clear your list. Continue?")) {
+            setVocabList([]);
+            setShowCsvEditor(false);
+        }
+        return;
+    }
+
+    try {
+        const rows = parseCSV(cleanText);
+        const startIdx = rows.length > 0 && rows[0].some(cell => cell.toLowerCase().includes('meaning')) ? 1 : 0;
+        const newItems: VocabItem[] = [];
+        
+        for (let i = startIdx; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.length < 2) continue;
+          if (!row[0] && !row[1]) continue;
+          
+          // Basic cleanup of quotes if they were manually typed weirdly, 
+          // though parseCSV should handle standard CSV quotes.
+          newItems.push({
+            id: generateId(row[0], row[1]),
+            meaning: row[0],
+            sentence: row[1],
+            pronunciation: row[2] || '',
+            tags: row[3] ? row[3].split(',').map(t => t.trim()).filter(Boolean) : []
+          });
+        }
+        
+        if (newItems.length === 0 && !confirm("No valid items found. Clear list?")) {
+            return;
+        }
+
+        setVocabList(newItems);
+        setShowCsvEditor(false);
+        alert(`Saved ${newItems.length} items.`);
+    } catch (e) {
+        alert("Error parsing CSV. Please check formatting.");
+    }
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -319,9 +381,14 @@ Make sure that there isn't format error. Return ONLY the CSV content, no introdu
         </label>
       </div>
       
-      <FunButton onClick={exportCSV} fullWidth variant="neutral" className="flex items-center justify-center gap-2">
-        <Download size={20} /> Download CSV (Export)
-      </FunButton>
+      <div className="flex gap-2">
+        <FunButton onClick={exportCSV} fullWidth variant="neutral" className="flex-1 flex items-center justify-center gap-2">
+          <Download size={20} /> Download CSV
+        </FunButton>
+        <FunButton onClick={handleEditCsv} fullWidth variant="neutral" className="flex-1 flex items-center justify-center gap-2">
+          <FileText size={20} /> Edit CSV
+        </FunButton>
+      </div>
       
       {/* Stored Items List */}
       <div className="flex flex-col flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 min-h-[500px] overflow-hidden">
@@ -363,17 +430,55 @@ Make sure that there isn't format error. Return ONLY the CSV content, no introdu
                   <p className="text-blue-600 dark:text-blue-300 text-sm">{item.sentence}</p>
                   <div className="flex gap-1 mt-1">{item.tags.map(t => <span key={t} className="text-[10px] bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-300">{t}</span>)}</div>
               </div>
-              <button 
-                  onClick={(e) => { e.stopPropagation(); setVocabList((prev: VocabItem[]) => prev.filter(v => v.id !== item.id)); }}
-                  className="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity" 
-                  type="button"
-              >
-                  <Trash2 size={16} />
-              </button>
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                    onClick={(e) => { e.stopPropagation(); startEditing(item); }}
+                    className="text-gray-400 hover:text-blue-500 p-1" 
+                    type="button"
+                >
+                    <Pencil size={16} />
+                </button>
+                <button 
+                    onClick={(e) => { e.stopPropagation(); setVocabList((prev: VocabItem[]) => prev.filter(v => v.id !== item.id)); }}
+                    className="text-gray-400 hover:text-red-500 p-1" 
+                    type="button"
+                >
+                    <Trash2 size={16} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* CSV Editor Modal */}
+      {showCsvEditor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col border border-gray-100 dark:border-gray-700">
+            <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-700">
+              <h3 className="font-bold text-lg flex items-center gap-2"><FileText size={20} /> Edit CSV Content</h3>
+              <button onClick={() => setShowCsvEditor(false)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><X size={20}/></button>
+            </div>
+            <div className="p-4 flex-1 flex flex-col gap-2 min-h-0">
+               <div className="text-xs text-gray-500 mb-1">
+                 Format: "Meaning","Sentence","Pronunciation","Tags" (Header is optional but recommended)
+               </div>
+               <textarea 
+                  className="flex-1 w-full p-4 font-mono text-sm border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  value={csvEditorContent}
+                  onChange={(e) => setCsvEditorContent(e.target.value)}
+                  spellCheck={false}
+               />
+            </div>
+            <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-end gap-2">
+               <button onClick={() => setShowCsvEditor(false)} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg">Cancel</button>
+               <FunButton onClick={handleSaveCsvEditor} variant="primary" className="flex items-center gap-2">
+                 <Save size={16} /> Update List
+               </FunButton>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {editingItem && (
