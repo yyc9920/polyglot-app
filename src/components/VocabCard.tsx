@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, AlertCircle, Volume2, BookOpen, MessageCircleQuestion, Music } from 'lucide-react';
+import { CheckCircle, AlertCircle, Volume2, BookOpen, MessageCircleQuestion, Music, Pencil } from 'lucide-react';
 import type { VocabItem, LearningStatus } from '../types';
 
 interface VocabCardProps {
@@ -9,6 +9,7 @@ interface VocabCardProps {
   onSpeak?: () => void;
   onAiExplain?: (e: React.MouseEvent) => void;
   onOpenMemo?: (e: React.MouseEvent) => void;
+  onEdit?: () => void;
   className?: string;
 }
 
@@ -19,6 +20,7 @@ export function VocabCard({
   onSpeak, 
   onAiExplain, 
   onOpenMemo,
+  onEdit,
   className = ""
 }: VocabCardProps) {
   const [showSongInfo, setShowSongInfo] = useState(false);
@@ -121,6 +123,16 @@ export function VocabCard({
                 >
                   <MessageCircleQuestion size={24} />
                 </button>
+              )}
+
+              {onEdit && (
+                  <button 
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                      className="p-4 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded-full shadow-lg border border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 active:scale-95 transition-all"
+                  >
+                      <Pencil size={24} />
+                  </button>
               )}
 
               {item.song && (

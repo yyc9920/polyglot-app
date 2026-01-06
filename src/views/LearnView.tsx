@@ -49,6 +49,10 @@ export function LearnView() {
   const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
   const [editBuffer, setEditBuffer] = useState('');
 
+  // Item Edit State
+  const [editingItem, setEditingItem] = useState<VocabItem | null>(null);
+  const [editForm, setEditForm] = useState({ meaning: '', sentence: '', pronunciation: '', tags: '' });
+
   // Swipe / Drag Logic
   const [swipeDiff, setSwipeDiff] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -256,6 +260,42 @@ export function LearnView() {
   const cancelEdit = () => {
       setEditingMemoId(null);
       setEditBuffer('');
+  };
+
+  const startItemEditing = (item: VocabItem) => {
+      setEditingItem(item);
+      setEditForm({
+          meaning: item.meaning,
+          sentence: item.sentence,
+          pronunciation: item.pronunciation || '',
+          tags: item.tags.join(', ')
+      });
+  };
+
+  const saveItemEditing = () => {
+      if (!editingItem) return;
+      if (!editForm.meaning || !editForm.sentence) {
+          alert("Meaning and Sentence are required.");
+          return;
+      }
+
+      setVocabList((prev: VocabItem[]) => prev.map(item => {
+          if (item.id === editingItem.id) {
+              return {
+                  ...item,
+                  meaning: editForm.meaning,
+                  sentence: editForm.sentence,
+                  pronunciation: editForm.pronunciation,
+                  tags: editForm.tags.split(',').map(t => t.trim()).filter(Boolean)
+              };
+          }
+          return item;
+      }));
+      setEditingItem(null);
+  };
+
+  const cancelItemEditing = () => {
+      setEditingItem(null);
   };
 
   const handleAiExplain = async (e: React.MouseEvent) => {
@@ -665,6 +705,7 @@ export function LearnView() {
                     onSpeak={() => speak(displayList[currentIndex].sentence)}
                     onAiExplain={handleAiExplain}
                     onOpenMemo={handleOpenMemo}
+                    onEdit={() => startItemEditing(displayList[currentIndex])}
                     className="col-start-1 row-start-1 backface-hidden"
                   />
 
@@ -721,6 +762,58 @@ export function LearnView() {
              ))}
            </div>
         </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 dark:border-gray-700">
+                  <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-700">
+                      <h3 className="font-bold text-lg">Edit Item</h3>
+                      <button onClick={cancelItemEditing} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><X size={20}/></button>
+                  </div>
+                  <div className="p-4 flex flex-col gap-4">
+                      <div>
+                          <label className="text-xs font-bold text-gray-500 mb-1 block">Meaning</label>
+                          <input 
+                              className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700" 
+                              value={editForm.meaning} 
+                              onChange={e => setEditForm({...editForm, meaning: e.target.value})} 
+                          />
+                      </div>
+                      <div>
+                          <label className="text-xs font-bold text-gray-500 mb-1 block">Sentence</label>
+                          <input 
+                              className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700" 
+                              value={editForm.sentence} 
+                              onChange={e => setEditForm({...editForm, sentence: e.target.value})} 
+                          />
+                      </div>
+                      <div>
+                          <label className="text-xs font-bold text-gray-500 mb-1 block">Pronunciation</label>
+                          <input 
+                              className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700" 
+                              value={editForm.pronunciation} 
+                              onChange={e => setEditForm({...editForm, pronunciation: e.target.value})} 
+                          />
+                      </div>
+                      <div>
+                          <label className="text-xs font-bold text-gray-500 mb-1 block">Tags (comma separated)</label>
+                          <input 
+                              className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700" 
+                              value={editForm.tags} 
+                              onChange={e => setEditForm({...editForm, tags: e.target.value})} 
+                          />
+                      </div>
+                  </div>
+                  <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-end gap-2">
+                      <button onClick={cancelItemEditing} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg">Cancel</button>
+                      <FunButton onClick={saveItemEditing} variant="primary" className="flex items-center gap-2">
+                          <Save size={16} /> Save Changes
+                      </FunButton>
+                  </div>
+              </div>
+          </div>
       )}
     </div>
   );
