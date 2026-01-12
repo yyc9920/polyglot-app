@@ -1,12 +1,12 @@
-# 🦜 Polygot: AI-Powered language learning web app with sentence
+# 🦜 Polyglot: AI-Powered language learning web app with sentence
 
-> **Learn smarter, not harder.** Polygot generates custom sentence lists based on your specific interests using Google's Gemini AI.
+> **Learn smarter, not harder.** Polyglot generates custom sentence lists based on your specific interests using Google's Gemini AI.
 
 *(Replace this image with a screenshot of your app's dashboard)*
 
 ## 📋 Project Overview
 
-Polygot is a modern web application designed to help language learners build sentence relevant to *them*. Instead of static, pre-made lists, Polygot uses Artificial Intelligence to generate context-aware vocabulary cards.
+Polyglot is a modern web application designed to help language learners build sentence relevant to *them*. Instead of static, pre-made lists, Polyglot uses Artificial Intelligence to generate context-aware vocabulary cards.
 
 **Key Features:**
 
@@ -92,7 +92,7 @@ The app uses a central Context to manage the list of words and user interactions
 
 ```
 # 1. Clone the repository
-git clone [https://github.com/your-username/polygot-app.git](https://github.com/your-username/polygot-app.git)
+git clone [https://github.com/your-username/polyglot-app.git](https://github.com/your-username/polyglot-app.git)
 
 # 2. Install dependencies
 npm install

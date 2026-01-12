@@ -27,7 +27,7 @@ function AppContent() {
       {/* Header */}
       <header className="flex-none sticky top-0 z-10 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800 px-4 h-14 flex items-center justify-between">
         <h1 className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent truncate pr-4 flex items-center gap-2">
-          Polygot <Sparkles size={16} className="text-yellow-500" />
+          Polyglot <Sparkles size={16} className="text-yellow-500" />
         </h1>
         <button 
           onClick={toggleTheme}

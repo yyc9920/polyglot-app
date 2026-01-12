@@ -163,7 +163,7 @@ export function SettingsView() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `polygot_backup_${new Date().toISOString().slice(0,10)}.json`;
+      link.download = `polyglot_backup_${new Date().toISOString().slice(0,10)}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -339,7 +339,7 @@ export function SettingsView() {
                     <Trophy size={24} className="fill-current" />
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 leading-none mb-1">Total Polygot Score</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 leading-none mb-1">Total Polyglot Score</span>
                     <span className="font-black text-2xl leading-none">{status.points || 0} <span className="text-sm font-bold opacity-60">pts</span></span>
                 </div>
             </div>

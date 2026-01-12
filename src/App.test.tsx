@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 
 test('renders app header', () => {
   render(<App />);
-  // The header now contains "Polygot", so we check for that instead of the old text.
-  const headerElement = screen.getByText(/Polygot/i);
+  // The header now contains "Polyglot", so we check for that instead of the old text.
+  const headerElement = screen.getByText(/Polyglot/i);
   expect(headerElement).toBeInTheDocument();
 });
