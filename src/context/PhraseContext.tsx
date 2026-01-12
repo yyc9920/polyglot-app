@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode, type Dispatch, type SetStateAction } from 'react';
 import type { LearningStatus, PhraseItem, ViewMode, SongMaterials } from '../types';
 import { SAMPLE_DATA } from '../constants';
+import useCloudStorage from '../hooks/useCloudStorage';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { parseCSV, generateId } from '../lib/utils';
 import type { YouTubeVideo } from '../lib/youtube';
@@ -53,23 +54,27 @@ interface PhraseAppContextType {
 const PhraseContext = createContext<PhraseAppContextType | undefined>(undefined);
 
 export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Migration logic could be added here if we wanted to preserve 'vocabList' data into 'phraseList'
-  const [phraseList, setPhraseList] = useLocalStorage<PhraseItem[]>(
+  // Use Cloud Storage for Syncable Data
+  const [phraseList, setPhraseList] = useCloudStorage<PhraseItem[]>(
     'phraseList', 
     SAMPLE_DATA, 
     (items: PhraseItem[]) => items.filter((item, index, self) => index === self.findIndex(t => t.id === item.id))
   );
-  const [status, setStatus] = useLocalStorage<LearningStatus>('learningStatus', { completedIds: [], incorrectIds: [], points: 0, quizStats: {} });
+  
+  const [status, setStatus] = useCloudStorage<LearningStatus>('learningStatus', { completedIds: [], incorrectIds: [], points: 0, quizStats: {} });
+  
+  const [savedUrls, setSavedUrls] = useCloudStorage<string[]>('csvSourceUrls', []);
+
+  // Use Local Storage for Device-Specific Settings (API Keys, Voices, etc)
   const [voiceURI, setVoiceURI] = useLocalStorage<string | null>('ttsVoiceURI', null);
   const [apiKey, setApiKey] = useLocalStorage<string>('geminiApiKey', '');
   const [youtubeApiKey, setYoutubeApiKey] = useLocalStorage<string>('youtubeApiKey', '');
   
-  const [savedUrls, setSavedUrls] = useLocalStorage<string[]>('csvSourceUrls', []);
   const [currentView, setCurrentView] = useState<ViewMode>('learn');
   const [reviewMode, setReviewMode] = useState(false);
   const [musicState, setMusicState] = useState<MusicViewState>(initialMusicState);
 
-  // Migration for old savedUrl
+  // Migration for old savedUrl (local storage only)
   const [oldSavedUrl, setOldSavedUrl] = useLocalStorage<string>('csvSourceUrl', '');
   useEffect(() => {
     if (oldSavedUrl && savedUrls.length === 0) {
@@ -167,7 +172,7 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
 
     fetchAll();
-  }, [savedUrls, setPhraseList]);
+  }, [savedUrls]); // Removed setPhraseList from deps to prevent loops with cloud storage
 
   const handleReset = () => {
     if (confirm('모든 학습 기록을 초기화하시겠습니까?')) {

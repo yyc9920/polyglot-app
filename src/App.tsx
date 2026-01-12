@@ -11,6 +11,7 @@ import {
 import { GlobalStyles, NavButton } from './components/ui';
 import useTheme from './hooks/useTheme';
 import { PhraseAppProvider, usePhraseAppContext } from './context/PhraseContext';
+import { AuthProvider } from './context/AuthContext';
 import { LearnView } from './views/LearnView';
 import { QuizView } from './views/QuizView';
 import { BuilderView } from './views/BuilderView';
@@ -26,7 +27,7 @@ function AppContent() {
       {/* Header */}
       <header className="flex-none sticky top-0 z-10 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800 px-4 h-14 flex items-center justify-between">
         <h1 className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent truncate pr-4 flex items-center gap-2">
-          Learn Language via CSV <Sparkles size={16} className="text-yellow-500" />
+          Polygot <Sparkles size={16} className="text-yellow-500" />
         </h1>
         <button 
           onClick={toggleTheme}
@@ -55,31 +56,31 @@ function AppContent() {
             active={currentView === 'learn'} 
             onClick={() => setCurrentView('learn')} 
             icon={<BookOpen size={24} />} 
-            label="학습" 
+            label="Learn" 
           />
           <NavButton 
             active={currentView === 'music'} 
             onClick={() => setCurrentView('music')} 
             icon={<Music size={24} />} 
-            label="뮤직" 
+            label="Music" 
           />
           <NavButton 
             active={currentView === 'quiz'} 
             onClick={() => setCurrentView('quiz')} 
             icon={<Brain size={24} />} 
-            label="퀴즈" 
+            label="Quiz" 
           />
           <NavButton 
             active={currentView === 'builder'} 
             onClick={() => setCurrentView('builder')} 
             icon={<PlusCircle size={24} />} 
-            label="빌더" 
+            label="Build" 
           />
           <NavButton 
             active={currentView === 'settings'} 
             onClick={() => setCurrentView('settings')} 
             icon={<Settings size={24} />} 
-            label="설정" 
+            label="Settings" 
           />
         </div>
       </nav>
@@ -91,8 +92,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <PhraseAppProvider>
-      <AppContent />
-    </PhraseAppProvider>
+    <AuthProvider>
+      <PhraseAppProvider>
+        <AppContent />
+      </PhraseAppProvider>
+    </AuthProvider>
   );
 }

@@ -20,10 +20,14 @@ import {
   Link as LinkIcon,
   ExternalLink,
   HelpCircle,
-  Trophy
+  Trophy,
+  User,
+  LogOut
 } from 'lucide-react';
 import { usePhraseAppContext } from '../context/PhraseContext';
+import { useAuth } from '../context/AuthContext';
 import { FunButton } from '../components/FunButton';
+import { LoginModal } from '../components/LoginModal';
 
 export function SettingsView() {
   const { 
@@ -45,6 +49,9 @@ export function SettingsView() {
     setCurrentView,
     syncUrl
   } = usePhraseAppContext();
+
+  const { user, signOut } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -220,6 +227,50 @@ export function SettingsView() {
   return (
     <div className="h-full flex flex-col gap-6 overflow-y-auto p-1">
       
+      {/* 0. User Profile */}
+      <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800 dark:text-gray-100">
+            <User className="text-green-500" /> Account
+            </h3>
+        </div>
+        
+        {user ? (
+            <div className="flex items-center gap-4">
+                {user.photoURL ? (
+                    <img src={user.photoURL} alt="Profile" className="w-12 h-12 rounded-full border-2 border-green-500" />
+                ) : (
+                    <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-600 dark:text-green-400 font-bold text-xl">
+                        {user.displayName?.[0] || 'U'}
+                    </div>
+                )}
+                <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-800 dark:text-gray-100 truncate">{user.displayName}</p>
+                    <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                </div>
+                <button 
+                    onClick={() => signOut()}
+                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    title="Sign Out"
+                >
+                    <LogOut size={20} />
+                </button>
+            </div>
+        ) : (
+            <div className="text-center space-y-3">
+                <p className="text-sm text-gray-500">Sign in to sync your progress.</p>
+                <FunButton 
+                    onClick={() => setShowLoginModal(true)} 
+                    variant="primary" 
+                    fullWidth
+                    className="flex items-center justify-center gap-2"
+                >
+                    <User size={18} /> Sign In
+                </FunButton>
+            </div>
+        )}
+      </section>
+
       {/* 1. Learning Progress Dashboard */}
       <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="flex justify-between items-center mb-4">
@@ -605,6 +656,11 @@ export function SettingsView() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
 
     </div>
