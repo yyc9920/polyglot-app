@@ -21,7 +21,7 @@ export function MusicLearnView() {
     musicState,
     setMusicState
   } = usePhraseAppContext();
-  const { t } = useLanguage();
+  const { t, language, LANGUAGE_NAMES } = useLanguage();
   
   const { 
       query, 
@@ -102,7 +102,7 @@ export function MusicLearnView() {
   const handleSelectVideo = async (video: YouTubeVideo) => {
     updateState({ selectedVideo: video, materials: null });
     
-    const cacheKey = `song_lyrics_${video.videoId}`;
+    const cacheKey = `song_lyrics_${video.videoId}_${language}`;
     const cached = localStorage.getItem(cacheKey);
     
     if (cached) {
@@ -126,8 +126,10 @@ export function MusicLearnView() {
         const artist = selectedSong ? selectedSong.artist : video.artist;
         const title = selectedSong ? selectedSong.title : video.title;
         const songId = selectedSong ? selectedSong.id : undefined;
+        
+        const targetLanguageName = LANGUAGE_NAMES[language];
 
-        const data = await generateSongLyrics(artist, title, apiKey, geniusApiKey, songId);
+        const data = await generateSongLyrics(artist, title, apiKey, targetLanguageName, geniusApiKey, songId);
         localStorage.setItem(cacheKey, JSON.stringify(data));
         updateState({ materials: data });
     } catch (err) {
@@ -142,7 +144,8 @@ export function MusicLearnView() {
       if (!apiKey || !selectedVideo || !materials) return;
       setGeneratingIdx(index);
       try {
-         const phraseData = await generatePhraseFromLyric(line, selectedVideo.artist, selectedVideo.title, apiKey);
+         const targetLanguageName = LANGUAGE_NAMES[language];
+         const phraseData = await generatePhraseFromLyric(line, selectedVideo.artist, selectedVideo.title, apiKey, targetLanguageName);
          
          if (phraseData && phraseData.meaning && phraseData.sentence) {
              const newPhrase = {
@@ -161,7 +164,8 @@ export function MusicLearnView() {
              };
              
              updateState({ materials: updatedMaterials });
-             const cacheKey = `song_lyrics_${selectedVideo.videoId}`;
+             
+             const cacheKey = `song_lyrics_${selectedVideo.videoId}_${language}`;
              localStorage.setItem(cacheKey, JSON.stringify(updatedMaterials));
          }
       } catch (err) {

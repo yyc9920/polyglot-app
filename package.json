@@ -12,6 +12,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@tailwindcss/typography": "^0.5.19",
     "canvas-confetti": "^1.9.4",
     "firebase": "^12.7.0",
