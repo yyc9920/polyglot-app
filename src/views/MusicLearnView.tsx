@@ -404,7 +404,7 @@ export function MusicLearnView() {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                const langs = ['en', 'ko', 'ja', 'zh'];
+                                                const langs = ['en', 'es', 'fr', 'ja', 'de', 'ko', 'it', 'zh', 'pt', 'hi'];
                                                 const currentIdx = langs.indexOf(item.language);
                                                 const nextLang = langs[(currentIdx + 1) % langs.length];
                                                 updatePlaylistLanguage(item.id, nextLang);

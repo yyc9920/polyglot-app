@@ -8,7 +8,8 @@ const db = getFirestore(app);
 function useCloudStorage<T>(
   key: string,
   initialValue: T | (() => T),
-  transform?: (value: T) => T
+  transform?: (value: T) => T,
+  mergeStrategy?: (local: T, cloud: T) => T
 ): [T, Dispatch<SetStateAction<T>>] {
   const { user } = useAuth();
   
@@ -44,9 +45,18 @@ function useCloudStorage<T>(
             const data = docSnap.data();
             if (data && data.value !== undefined) {
                  setStoredValue(prev => {
+                     const cloudValue = data.value;
+                     let newValue = cloudValue;
+
+                     if (mergeStrategy) {
+                         newValue = mergeStrategy(prev, cloudValue);
+                     }
+
+                     newValue = transform ? transform(newValue) : newValue;
+
                      // Only update if different to avoid loops/re-renders
-                     if (JSON.stringify(prev) !== JSON.stringify(data.value)) {
-                         return transform ? transform(data.value) : data.value;
+                     if (JSON.stringify(prev) !== JSON.stringify(newValue)) {
+                         return newValue;
                      }
                      return prev;
                  });

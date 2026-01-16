@@ -80,7 +80,17 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
   
   const [savedUrls, setSavedUrls] = useCloudStorage<string[]>('csvSourceUrls', []);
   const [purchasedPackages, setPurchasedPackages] = useCloudStorage<string[]>('purchasedPackages', []);
-  const [playlist, setPlaylist] = useCloudStorage<PlaylistItem[]>('playlist', []);
+  const [playlist, setPlaylist] = useCloudStorage<PlaylistItem[]>(
+    'playlist', 
+    [], 
+    undefined,
+    (local, cloud) => {
+        // Merge logic: Keep Cloud items, add Local items that are not in Cloud
+        const cloudIds = new Set(cloud.map(c => c.id));
+        const localUnique = local.filter(l => !cloudIds.has(l.id));
+        return [...cloud, ...localUnique];
+    }
+  );
 
   // Use Local Storage for Device-Specific Settings (API Keys, Voices, etc)
   const [voiceURI, setVoiceURI] = useLocalStorage<string | null>('ttsVoiceURI', null);

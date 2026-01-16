@@ -149,18 +149,7 @@ export function LearnView() {
     }
 
     if (isShuffled) {
-      const currentList = displayListRef.current;
-      const currentIds = new Set(currentList.map(v => v.id));
-      const newIds = new Set(list.map(v => v.id));
-
-      const isSameSet = currentIds.size === newIds.size && list.every(v => currentIds.has(v.id));
-
-      if (isSameSet && currentList.length > 0) {
-        const itemMap = new Map(list.map(v => [v.id, v]));
-        list = currentList.map(v => itemMap.get(v.id)!);
-      } else {
-        list = [...list].sort(() => Math.random() - 0.5);
-      }
+      list = [...list].sort(() => Math.random() - 0.5);
     }
 
     setDisplayList(list);
