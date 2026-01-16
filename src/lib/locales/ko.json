@@ -166,7 +166,16 @@
     "generateCard": "카드 생성",
     "clickSparkle": "가사 탭 반짝이 클릭!",
     "selectVideo": "동영상 선택.",
-    "savedBadge": "저장됨"
+    "savedBadge": "저장됨",
+    "noSongsInPlaylist": "재생목록에 노래가 없습니다.",
+    "searchAndSelectVideo": "동영상을 검색하고 선택하여 추가하세요.",
+    "songsCount": "{{count}}곡",
+    "removeFromPlaylist": "재생목록에서 삭제하시겠습니까?",
+    "myPlaylist": "내 재생목록",
+    "original": "원문",
+    "translation": "번역",
+    "pasteOriginal": "원문 가사 붙여넣기...",
+    "pasteTranslation": "번역 붙여넣기..."
   },
   "quiz": {
     "start": "퀴즈 시작",
@@ -244,6 +253,7 @@
     "removeItem": "항목 삭제",
     "saveChanges": "변경 사항 저장",
     "updateList": "목록 업데이트",
-    "viewMemo": "메모 보기"
+    "viewMemo": "메모 보기",
+    "clickToChangeLanguage": "클릭하여 언어 변경"
   }
 }

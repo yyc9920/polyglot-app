@@ -168,7 +168,16 @@
     "generateCard": "Generate Card",
     "clickSparkle": "Go to Lyrics tab and click the sparkle icon to generate phrases!",
     "selectVideo": "Select a video to generate materials.",
-    "savedBadge": "SAVED"
+    "savedBadge": "SAVED",
+    "noSongsInPlaylist": "No songs in playlist yet.",
+    "searchAndSelectVideo": "Search and select a video to add it automatically.",
+    "songsCount": "{{count}} songs",
+    "removeFromPlaylist": "Remove from playlist?",
+    "myPlaylist": "My Playlist",
+    "original": "Original",
+    "translation": "Translation",
+    "pasteOriginal": "Paste original lyrics here...",
+    "pasteTranslation": "Paste translation here..."
   },
   "quiz": {
     "start": "Start Quiz",
@@ -246,6 +255,7 @@
     "removeItem": "Remove item",
     "saveChanges": "Save Changes",
     "updateList": "Update List",
-    "viewMemo": "View Memo"
+    "viewMemo": "View Memo",
+    "clickToChangeLanguage": "Click to change language"
   }
 }

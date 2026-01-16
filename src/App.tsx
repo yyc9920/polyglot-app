@@ -12,6 +12,7 @@ import { GlobalStyles, NavButton } from './components/ui';
 import useTheme from './hooks/useTheme';
 import { PhraseAppProvider, usePhraseAppContext } from './context/PhraseContext';
 import { AuthProvider } from './context/AuthContext';
+import { MusicProvider } from './context/MusicContext';
 import { LearnView } from './views/LearnView';
 import { QuizView } from './views/QuizView';
 import { BuilderView } from './views/BuilderView';
@@ -96,7 +97,9 @@ export default function App() {
   return (
     <AuthProvider>
       <PhraseAppProvider>
-        <AppContent />
+        <MusicProvider>
+          <AppContent />
+        </MusicProvider>
       </PhraseAppProvider>
     </AuthProvider>
   );

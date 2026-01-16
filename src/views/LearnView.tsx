@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { 
-  Volume2, 
   X, 
   Shuffle,
   List as ListIcon,
@@ -20,7 +19,7 @@ import {
   AlertCircle,
   Pencil
 } from 'lucide-react';
-import type { LearningStatus, PhraseItem } from '../types';
+import type { PhraseItem } from '../types';
 import { callGemini } from '../lib/gemini';
 import { usePhraseAppContext } from '../context/PhraseContext';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -28,10 +27,13 @@ import { FunButton } from '../components/FunButton';
 import { PhraseCard } from '../components/PhraseCard';
 import { EditPhraseModal } from '../components/EditPhraseModal';
 import useLanguage from '../hooks/useLanguage';
+import { FlipListItem } from '../components/FlipListItem';
+import { useTTS } from '../hooks/useTTS';
 
 export function LearnView() {
-  const { phraseList, setPhraseList, voiceURI, status, apiKey, reviewMode, setReviewMode } = usePhraseAppContext();
+  const { phraseList, setPhraseList, status, apiKey, reviewMode, setReviewMode } = usePhraseAppContext();
   const { t } = useLanguage();
+  const { speak } = useTTS();
 
   const [viewMode, setViewMode] = useLocalStorage<'card' | 'list'>('learnViewMode', 'card');
   const [currentIndex, setCurrentIndex] = useLocalStorage<number>('learnCurrentIndex', 0);
@@ -176,15 +178,7 @@ export function LearnView() {
   }, [phraseList, selectedTags, isShuffled, searchTerm, reviewMode, status.incorrectIds]);
 
 
-  const speak = (text: string) => {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    if (voiceURI) {
-      const voice = window.speechSynthesis.getVoices().find(v => v.voiceURI === voiceURI);
-      if (voice) utterance.voice = voice;
-    }
-    window.speechSynthesis.speak(utterance);
-  };
+
 
   const handleNext = () => {
     window.speechSynthesis.cancel();
@@ -664,24 +658,50 @@ export function LearnView() {
       
       {viewMode === 'list' && displayList.length > 0 && (
         <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-2">
-           <div className="space-y-2">
-             {displayList.map((item, idx) => (
-               <FlipListItem 
-                 key={item.id} 
-                 item={item} 
-                 idx={idx} 
-                 status={status} 
-                 speak={speak} 
-                 t={t}
-                 onOpenMemo={() => {
-                    setCurrentIndex(idx);
-                    setAiExplanation(item.memo || '');
-                    setShowAiModal(true);
-                    setIsAiEditing(false);
-                 }}
-               />
-             ))}
-           </div>
+            <div className="space-y-2">
+              {displayList.map((item, idx) => (
+                <FlipListItem 
+                  key={item.id} 
+                  item={item} 
+                  index={idx} 
+                  onSpeak={() => speak(item.sentence)}
+                  badges={
+                    <>
+                      {status.completedIds.includes(item.id) && (
+                        <div className="relative group/icon">
+                          <CheckCircle size={14} className="text-green-500" />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-black/80 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none z-10">
+                            {t('learn.passed')} {status.quizStats?.[item.id]?.correct.join(', ') || 'N/A'}
+                          </div>
+                        </div>
+                      )}
+                      {status.incorrectIds.includes(item.id) && (
+                        <div className="relative group/icon">
+                          <AlertCircle size={14} className="text-red-500" />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-black/80 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none z-10">
+                            {t('learn.failed')} {status.quizStats?.[item.id]?.incorrect.join(', ') || t('learn.reviewNeeded')}
+                          </div>
+                        </div>
+                      )}
+                      {item.memo && (
+                        <button 
+                          onClick={(e) => {
+                             e.stopPropagation(); 
+                             setCurrentIndex(idx);
+                             setAiExplanation(item.memo || '');
+                             setShowAiModal(true);
+                             setIsAiEditing(false);
+                          }}
+                          className="flex items-center gap-1 text-[10px] font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 px-1.5 py-0.5 rounded hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
+                        >
+                          <BookOpen size={10} /> {t('learn.memo')}
+                        </button>
+                      )}
+                    </>
+                  }
+                />
+              ))}
+            </div>
         </div>
       )}
 
@@ -694,68 +714,4 @@ export function LearnView() {
   );
 }
 
-function FlipListItem({ item, idx, status, speak, onOpenMemo, t }: { 
-    item: PhraseItem, 
-    idx: number, 
-    status: LearningStatus, 
-    speak: (t:string)=>void,
-    onOpenMemo?: () => void,
-    t: (key: string) => string
-}) {
-  const [showMeaning, setShowMeaning] = useState(false);
 
-  return (
-    <div 
-      className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl flex justify-between items-center group cursor-pointer active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
-      onClick={() => setShowMeaning(!showMeaning)}
-    >
-      <div className="flex-1 min-w-0 pr-3">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-bold text-blue-500 w-6 flex-none">{idx + 1}</span>
-          <h4 className={`font-bold transition-all duration-300 ${showMeaning ? 'text-gray-500 dark:text-gray-400 text-sm' : 'text-blue-900 dark:text-blue-100 text-lg'}`}>
-            {showMeaning ? item.meaning : item.sentence}
-          </h4>
-        </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 pl-8 truncate min-h-[1.25rem]">
-          {showMeaning ? (
-             <span className="text-blue-500 font-medium">{item.sentence}</span>
-          ) : (
-             <span className="opacity-50 text-xs">{t('learn.tapToRevealMeaning')}</span>
-          )}
-        </p>
-        <div className="flex gap-1 mt-1 pl-8 items-center">
-           {status.completedIds.includes(item.id) && (
-             <div className="relative group/icon">
-               <CheckCircle size={14} className="text-green-500" />
-               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-black/80 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none z-10">
-                 {t('learn.passed')} {status.quizStats?.[item.id]?.correct.join(', ') || 'N/A'}
-               </div>
-             </div>
-           )}
-           {status.incorrectIds.includes(item.id) && (
-             <div className="relative group/icon">
-               <AlertCircle size={14} className="text-red-500" />
-               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-black/80 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none z-10">
-                 {t('learn.failed')} {status.quizStats?.[item.id]?.incorrect.join(', ') || t('learn.reviewNeeded')}
-               </div>
-             </div>
-           )}
-           {item.memo && (
-               <button 
-                onClick={(e) => { e.stopPropagation(); onOpenMemo?.(); }}
-                className="flex items-center gap-1 text-[10px] font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 px-1.5 py-0.5 rounded hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
-               >
-                 <BookOpen size={10} /> {t('learn.memo')}
-               </button>
-           )}
-        </div>
-      </div>
-      <button
-        onClick={(e) => { e.stopPropagation(); speak(item.sentence); }}
-        className="p-3 bg-white dark:bg-gray-600 rounded-full shadow-sm text-blue-500 active:scale-90 transition-transform"
-      >
-        <Volume2 size={18} />
-      </button>
-    </div>
-  );
-}

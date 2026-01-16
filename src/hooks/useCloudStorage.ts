@@ -1,4 +1,4 @@
-import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
+import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { app } from '../lib/firebase';
@@ -12,6 +12,7 @@ function useCloudStorage<T>(
   mergeStrategy?: (local: T, cloud: T) => T
 ): [T, Dispatch<SetStateAction<T>>] {
   const { user } = useAuth();
+  const lastCloudStr = useRef<string>('');
   
   // 1. Initialize state from LocalStorage first (for offline/guest support)
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -44,8 +45,11 @@ function useCloudStorage<T>(
         if (docSnap.exists()) {
             const data = docSnap.data();
             if (data && data.value !== undefined) {
+                 const cloudValue = data.value;
+                 
+                 lastCloudStr.current = JSON.stringify(cloudValue);
+
                  setStoredValue(prev => {
-                     const cloudValue = data.value;
                      let newValue = cloudValue;
 
                      if (mergeStrategy) {
@@ -65,32 +69,37 @@ function useCloudStorage<T>(
     });
 
     return () => unsubscribe();
-  }, [user, key]);
+  }, [user, key, mergeStrategy, transform]);
 
 
   // 3. Persist changes to LocalStorage AND Cloud (if logged in)
   useEffect(() => {
     // Always save to LocalStorage (as cache/backup)
     try {
-      localStorage.setItem(key, JSON.stringify(storedValue));
-    } catch (error) {
-      console.error('Error writing to localStorage:', error);
-    }
+      const currentStr = JSON.stringify(storedValue);
+      localStorage.setItem(key, currentStr);
+      
+      // If logged in, save to Firestore
+      if (user) {
+          if (currentStr === lastCloudStr.current) {
+              return;
+          }
 
-    // If logged in, save to Firestore
-    if (user) {
-        const saveToCloud = async () => {
-            try {
-                const docRef = doc(db, 'users', user.uid, 'data', key);
-                await setDoc(docRef, { value: storedValue, updatedAt: new Date().toISOString() }, { merge: true });
-            } catch (err) {
-                console.error("Error saving to cloud:", err);
-            }
-        };
-        
-        // Debounce could be added here for performance
-        const timeoutId = setTimeout(saveToCloud, 1000); 
-        return () => clearTimeout(timeoutId);
+          const saveToCloud = async () => {
+              try {
+                  const docRef = doc(db, 'users', user.uid, 'data', key);
+                  await setDoc(docRef, { value: storedValue, updatedAt: new Date().toISOString() }, { merge: true });
+                  lastCloudStr.current = currentStr;
+              } catch (err) {
+                  console.error("Error saving to cloud:", err);
+              }
+          };
+          
+          const timeoutId = setTimeout(saveToCloud, 1000); 
+          return () => clearTimeout(timeoutId);
+      }
+    } catch (error) {
+      console.error('Error handling storage updates:', error);
     }
 
   }, [key, storedValue, user]);

@@ -1,42 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, type ReactNode, type Dispatch, type SetStateAction } from 'react';
-import type { LearningStatus, PhraseItem, ViewMode, SongMaterials, PlaylistItem } from '../types';
+import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode, type Dispatch, type SetStateAction } from 'react';
+import type { LearningStatus, PhraseItem, ViewMode } from '../types';
 import { SAMPLE_DATA } from '../constants';
 import useCloudStorage from '../hooks/useCloudStorage';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { parseCSV, generateId } from '../lib/utils';
-import type { YouTubeVideo } from '../lib/youtube';
-import type { Song } from '../lib/lyrics';
 import { PHRASE_DICTIONARY, type LanguageCode } from '../data/phraseDictionary';
-
-export interface MusicViewState {
-  query: string;
-  results: YouTubeVideo[];
-  songResults: Song[];
-  selectedVideo: YouTubeVideo | null;
-  selectedSong: Song | null;
-  materials: SongMaterials | null;
-  isLoading: boolean;
-  isSearching: boolean;
-  searchStep: 'song' | 'video' | 'playlist';
-  activeTab: 'lyrics' | 'phrase';
-  songPage: number;
-  videoPage: number;
-}
-
-const initialMusicState: MusicViewState = {
-  query: '',
-  results: [],
-  songResults: [],
-  selectedVideo: null,
-  selectedSong: null,
-  materials: null,
-  isLoading: false,
-  isSearching: false,
-  searchStep: 'song',
-  activeTab: 'lyrics',
-  songPage: 1,
-  videoPage: 1,
-};
 
 interface PhraseAppContextType {
   phraseList: PhraseItem[];
@@ -54,16 +22,12 @@ interface PhraseAppContextType {
   setCurrentView: Dispatch<SetStateAction<ViewMode>>;
   reviewMode: boolean;
   setReviewMode: Dispatch<SetStateAction<boolean>>;
-  musicState: MusicViewState;
-  setMusicState: Dispatch<SetStateAction<MusicViewState>>;
   purchasedPackages: string[];
   addStarterPackage: (targetLang: LanguageCode, sourceLang?: LanguageCode) => void;
   handleReset: () => void;
   handleDeleteAllData: () => void;
   syncUrl: (url: string) => Promise<void>;
   totalCount: number;
-  playlist: PlaylistItem[];
-  setPlaylist: Dispatch<SetStateAction<PlaylistItem[]>>;
 }
 
 const PhraseContext = createContext<PhraseAppContextType | undefined>(undefined);
@@ -80,17 +44,6 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
   
   const [savedUrls, setSavedUrls] = useCloudStorage<string[]>('csvSourceUrls', []);
   const [purchasedPackages, setPurchasedPackages] = useCloudStorage<string[]>('purchasedPackages', []);
-  const [playlist, setPlaylist] = useCloudStorage<PlaylistItem[]>(
-    'playlist', 
-    [], 
-    undefined,
-    (local, cloud) => {
-        // Merge logic: Keep Cloud items, add Local items that are not in Cloud
-        const cloudIds = new Set(cloud.map(c => c.id));
-        const localUnique = local.filter(l => !cloudIds.has(l.id));
-        return [...cloud, ...localUnique];
-    }
-  );
 
   // Use Local Storage for Device-Specific Settings (API Keys, Voices, etc)
   const [voiceURI, setVoiceURI] = useLocalStorage<string | null>('ttsVoiceURI', null);
@@ -100,7 +53,6 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
   
   const [currentView, setCurrentView] = useState<ViewMode>('learn');
   const [reviewMode, setReviewMode] = useState(false);
-  const [musicState, setMusicState] = useState<MusicViewState>(initialMusicState);
 
   // Migration for old savedUrl (local storage only)
   const [oldSavedUrl, setOldSavedUrl] = useLocalStorage<string>('csvSourceUrl', '');
@@ -145,7 +97,7 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
       }
   };
 
-  const mergePhraseList = (newItems: PhraseItem[]) => {
+  const mergePhraseList = useCallback((newItems: PhraseItem[]) => {
       if (newItems.length === 0) return;
       
       setPhraseList((prev: PhraseItem[]) => {
@@ -175,7 +127,7 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
           }
           return prev;
       });
-  };
+  }, [setPhraseList]);
 
   const syncUrl = async (url: string) => {
       const items = await fetchFromUrl(url);
@@ -226,7 +178,7 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
 
     fetchAll();
-  }, [savedUrls]); // Removed setPhraseList from deps to prevent loops with cloud storage
+  }, [savedUrls, mergePhraseList]); // Removed setPhraseList from deps to prevent loops with cloud storage
 
   const handleReset = () => {
     if (confirm('모든 학습 기록을 초기화하시겠습니까?')) {
@@ -240,7 +192,6 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
       setStatus({ completedIds: [], incorrectIds: [], points: 0, quizStats: {} });
       setSavedUrls([]);
       setPurchasedPackages([]);
-      setPlaylist([]);
     }
   };
 
@@ -262,16 +213,12 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
     setCurrentView,
     reviewMode,
     setReviewMode,
-    musicState,
-    setMusicState,
     purchasedPackages,
     addStarterPackage,
     handleReset,
     handleDeleteAllData,
     syncUrl,
     totalCount,
-    playlist,
-    setPlaylist,
   };
 
   return <PhraseContext.Provider value={value}>{children}</PhraseContext.Provider>;
