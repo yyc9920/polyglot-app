@@ -9,6 +9,7 @@ export interface Song {
   id: number;
   title: string;
   artist: string;
+  genre?: string;
   image: string;
   url: string;
   previewUrl?: string;
@@ -35,6 +36,7 @@ export async function searchSongs(query: string): Promise<Song[]> {
       id: item.trackId,
       title: item.trackName,
       artist: item.artistName,
+      genre: item.primaryGenreName,
       image: item.artworkUrl100?.replace('100x100bb', '300x300bb'),
       url: item.trackViewUrl,
       previewUrl: item.previewUrl

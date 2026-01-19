@@ -55,7 +55,8 @@ export const generateSongLyrics = async (artist: string, title: string, apiKey: 
         }
       },
       artist: { type: "STRING" },
-      title: { type: "STRING" }
+      title: { type: "STRING" },
+      genre: { type: "STRING" }
     },
     required: ["lyrics", "artist", "title"]
   };
@@ -64,7 +65,8 @@ export const generateSongLyrics = async (artist: string, title: string, apiKey: 
     const searchPrompt = `
     Find the official lyrics for the song "${title}" by "${artist}".
     Also find the meaning or translation in ${locale}.
-    Return the lyrics and translation in a raw text format.
+    Identify the music genre of the song.
+    Return the lyrics, translation, and genre in a raw text format.
     `;
 
     const searchResult = await callGemini(searchPrompt, apiKey, {
@@ -84,6 +86,7 @@ export const generateSongLyrics = async (artist: string, title: string, apiKey: 
     Extract the lyrics and their ${locale} translation.
     If the translation is missing in the raw text, generate it yourself based on the lyrics.
     The 'translated' field MUST be in ${locale}.
+    Identify the genre of the song (e.g. Pop, Rock, Hip Hop, Ballad, etc).
 
     Output JSON Schema:
     {
@@ -92,7 +95,8 @@ export const generateSongLyrics = async (artist: string, title: string, apiKey: 
         { "original": "line 2", "translated": "translation 2" }
       ],
       "artist": "${artist}",
-      "title": "${title}"
+      "title": "${title}",
+      "genre": "Genre Name"
     }
     `;
 
@@ -114,6 +118,7 @@ export const generateSongLyrics = async (artist: string, title: string, apiKey: 
 
     Output MUST be valid JSON conforming to the schema.
     Provide the full lyrics. The 'translated' field MUST be in ${locale}.
+    Identify the genre of the song.
     `;
 
     const text = await callGemini(fallbackPrompt, apiKey, {

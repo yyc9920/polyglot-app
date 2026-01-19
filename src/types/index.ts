@@ -10,6 +10,7 @@ export interface SongMaterials {
   phrases: { meaning: string; sentence: string; pronunciation: string }[];
   artist: string;
   title: string;
+  genre?: string;
 }
 
 export interface PhraseItem {
@@ -48,6 +49,7 @@ export interface PlaylistItem {
     thumbnailUrl: string;
   };
   language: string;
+  genre?: string;
   addedAt: number;
 }
 

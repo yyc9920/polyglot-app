@@ -15,6 +15,7 @@ interface PhraseAppContextType {
   setVoiceURI: Dispatch<SetStateAction<string | null>>;
   apiKey: string;
   setApiKey: Dispatch<SetStateAction<string>>;
+  lastFmApiKey: string;
   youtubeApiKey: string;
   savedUrls: string[];
   setSavedUrls: Dispatch<SetStateAction<string[]>>;
@@ -49,6 +50,7 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [voiceURI, setVoiceURI] = useLocalStorage<string | null>('ttsVoiceURI', null);
   const [apiKey, setApiKey] = useLocalStorage<string>('geminiApiKey', '');
   
+  const lastFmApiKey = import.meta.env.VITE_LASTFM_API_KEY || '';
   const youtubeApiKey = import.meta.env.VITE_YOUTUBE_API_KEY || '';
   
   const [currentView, setCurrentView] = useState<ViewMode>('learn');
@@ -206,6 +208,7 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
     setVoiceURI,
     apiKey,
     setApiKey,
+    lastFmApiKey,
     youtubeApiKey,
     savedUrls,
     setSavedUrls,

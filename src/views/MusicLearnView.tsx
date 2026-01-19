@@ -29,7 +29,7 @@ export function MusicLearnView() {
       setMusicState(prev => ({ ...prev, ...updates }));
   };
 
-  const addToPlaylist = (video: YouTubeVideo, artist: string, title: string, lyricsText: string) => {
+  const addToPlaylist = (video: YouTubeVideo, artist: string, title: string, lyricsText: string, genre?: string) => {
     const detectedLang = detectLanguage(lyricsText);
     const newItem: PlaylistItem = {
       id: video.videoId,
@@ -45,6 +45,7 @@ export function MusicLearnView() {
         thumbnailUrl: video.thumbnailUrl
       },
       language: detectedLang,
+      genre: genre,
       addedAt: Date.now()
     };
 
@@ -72,7 +73,8 @@ export function MusicLearnView() {
             const parsedMaterials = JSON.parse(cached);
             updateState({ materials: parsedMaterials });
             if (parsedMaterials.lyrics && parsedMaterials.lyrics.length > 0) {
-              addToPlaylist(video, artist, title, parsedMaterials.lyrics[0].original);
+              const genre = selectedSong?.genre || parsedMaterials.genre;
+              addToPlaylist(video, artist, title, parsedMaterials.lyrics[0].original, genre);
             }
             return;
         } catch (e) {
@@ -95,7 +97,8 @@ export function MusicLearnView() {
         updateState({ materials: data });
         
         if (data.lyrics && data.lyrics.length > 0) {
-          addToPlaylist(video, artist, title, data.lyrics[0].original);
+          const genre = selectedSong?.genre;
+          addToPlaylist(video, artist, title, data.lyrics[0].original, genre);
         }
     } catch (err) {
         const error = err as Error;

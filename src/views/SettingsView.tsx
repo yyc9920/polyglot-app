@@ -441,38 +441,39 @@ export function SettingsView() {
             <HelpCircle size={20} />
           </button>
         </div>
-          <div className="flex flex-col gap-2">
-           <div className="flex justify-between items-center">
-             <label className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('settings.googleGeminiApiKey')}</label>
-             <a 
-               href="https://aistudio.google.com/api-keys" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               className="text-xs text-purple-500 hover:text-purple-600 flex items-center gap-1 font-medium"
-             >
-               {t('settings.getApiKey')} <ExternalLink size={12} />
-             </a>
-           </div>
-           <div className="flex gap-2 relative">
-              <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <input 
-                type={showApiKey ? "text" : "password"}
-                placeholder={t('settings.apiKeyPlaceholder')}
-                value={apiKey} 
-                onChange={(e) => setApiKey(e.target.value)}
-                className="flex-1 pl-10 pr-10 p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-              />
-              <button 
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+           <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('settings.googleGeminiApiKey')}</label>
+              <a 
+                href="https://aistudio.google.com/api-keys" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-purple-500 hover:text-purple-600 flex items-center gap-1 font-medium"
               >
-                {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+                {t('settings.getApiKey')} <ExternalLink size={12} />
+              </a>
+            </div>
+            <div className="flex gap-2 relative">
+               <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+               <input 
+                 type={showApiKey ? "text" : "password"}
+                 placeholder={t('settings.apiKeyPlaceholder')}
+                 value={apiKey} 
+                 onChange={(e) => setApiKey(e.target.value)}
+                 className="flex-1 pl-10 pr-10 p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+               />
+               <button 
+                 onClick={() => setShowApiKey(!showApiKey)}
+                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+               >
+                 {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+               </button>
+            </div>
            </div>
+
            <p className="text-xs text-gray-400 mt-1">
              {t('settings.apiKeyStoredLocally')}
            </p>
-         </div>
        </section>
 
       {/* 4. Text-to-Speech Settings */}
