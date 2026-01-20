@@ -1,13 +1,16 @@
-import { Search, Loader2, ListMusic, ChevronLeft, ChevronRight, User as UserIcon, Sparkles, Youtube, Music } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useMusicContext } from '../../context/MusicContext';
 import { usePhraseAppContext } from '../../context/PhraseContext';
-import { FunButton } from '../FunButton';
-import useLanguage from '../../hooks/useLanguage';
 import { searchSongs, type Song } from '../../lib/lyrics';
 import { searchYouTube, type YouTubeVideo } from '../../lib/youtube';
 import { getTopTracksByTag } from '../../lib/lastfm';
 import { PlaylistPanel } from './PlaylistPanel';
-import { useEffect, useState } from 'react';
+import useLanguage from '../../hooks/useLanguage';
+
+import { SearchBar } from './video-search/SearchBar';
+import { RecommendationList } from './video-search/RecommendationList';
+import { SongResultsList } from './video-search/SongResultsList';
+import { VideoResultsList } from './video-search/VideoResultsList';
 
 const SONGS_PER_PAGE = 5;
 const VIDEOS_PER_PAGE = 5;
@@ -159,30 +162,14 @@ export function VideoSearchPanel({ onVideoSelect }: VideoSearchPanelProps) {
 
   return (
     <div className="flex-1 flex flex-col p-4 overflow-y-auto border-b border-gray-200 dark:border-gray-800 transition-all duration-300">
-        <div className="flex gap-2 mb-4">
-            <form onSubmit={handleSearch} className="flex-1 flex gap-2">
-            <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input 
-                    type="text" 
-                    placeholder={t('music.searchPlaceholder')}
-                    value={query}
-                    onChange={(e) => updateState({ query: e.target.value })}
-                    className="w-full pl-10 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-                />
-            </div>
-            <FunButton type="submit" variant="primary" disabled={isSearching}>
-                {isSearching ? <Loader2 className="animate-spin" size={20} /> : t('music.search')}
-            </FunButton>
-            </form>
-            <button 
-                onClick={() => updateState({ searchStep: searchStep === 'playlist' ? 'song' : 'playlist', results: [], songResults: [] })}
-                className={`p-3 rounded-xl border transition-colors ${searchStep === 'playlist' ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-600' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                title="Playlist"
-            >
-                <ListMusic size={20} />
-            </button>
-        </div>
+        <SearchBar 
+          query={query}
+          setQuery={(q) => updateState({ query: q })}
+          isSearching={isSearching}
+          searchStep={searchStep}
+          onSearch={handleSearch}
+          onTogglePlaylist={() => updateState({ searchStep: searchStep === 'playlist' ? 'song' : 'playlist', results: [], songResults: [] })}
+        />
 
         {searchStep === 'playlist' && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -199,177 +186,38 @@ export function VideoSearchPanel({ onVideoSelect }: VideoSearchPanelProps) {
                 
                 {songResults.length === 0 && !query && (
                     <div className="space-y-3">
-                        {playlist.length > 0 ? (
-                           <>
-                             <h3 className="font-bold text-gray-500 text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
-                                <Sparkles size={12} className="text-purple-500" /> Recommended for you
-                             </h3>
-                             {loadingRecs ? (
-                                 <div className="flex justify-center py-8">
-                                     <Loader2 className="animate-spin text-gray-400" size={24} />
-                                 </div>
-                             ) : recommendations.length > 0 ? (
-                                 recommendations.map((song, idx) => (
-                                    <div 
-                                        key={`rec-${idx}`} 
-                                        onClick={() => handleSelectSong(song)}
-                                        className="flex gap-4 p-3 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all shadow-sm border border-transparent hover:border-purple-200 dark:hover:border-purple-800 group"
-                                    >
-                                        <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 shadow-sm relative">
-                                            {song.image ? (
-                                                <img src={song.image} alt={song.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-purple-100 dark:bg-purple-900/30 text-purple-500">
-                                                    <Music size={24} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                            <h4 className="font-bold text-base text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                            {song.title}
-                                            </h4>
-                                            <div className="flex items-center gap-2 mt-1">
-                                            <UserIcon size={12} className="text-gray-400" />
-                                            <p className="text-sm text-gray-500">{song.artist}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full text-purple-600">
-                                            <Sparkles size={16} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                 ))
-                             ) : !lastFmApiKey ? (
-                                 <div className="text-center py-8 px-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-                                     <p className="text-sm text-gray-500 mb-2">Add Last.fm API Key in Settings to get music recommendations based on your playlist.</p>
-                                 </div>
-                             ) : (
-                                <div className="text-center py-8 text-gray-400 text-sm">No recommendations available</div>
-                             )}
-                           </>
-                        ) : (
-                            <div className="text-center py-10 text-gray-400">
-                                <Music size={48} className="mx-auto mb-4 opacity-20" />
-                                <p>Search for songs to build your playlist!</p>
-                            </div>
-                        )}
+                      <RecommendationList 
+                        recommendations={recommendations}
+                        loadingRecs={loadingRecs}
+                        hasPlaylist={playlist.length > 0}
+                        hasApiKey={!!lastFmApiKey}
+                        onSelectSong={handleSelectSong}
+                      />
                     </div>
                 )}
 
-                {currentSongs.map(song => (
-                    <div 
-                        key={song.id} 
-                        onClick={() => handleSelectSong(song)}
-                        className="flex gap-4 p-3 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all shadow-sm border border-transparent hover:border-blue-200 dark:hover:border-blue-800 group"
-                    >
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
-                        <img src={song.image} alt={song.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                            <h4 className="font-bold text-base text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                            {song.title}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-1">
-                            <UserIcon size={12} className="text-gray-400" />
-                            <p className="text-sm text-gray-500">{song.artist}</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full text-blue-600">
-                            <Sparkles size={16} />
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            
-                {totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-4 mt-4 pb-2">
-                        <button 
-                            onClick={handlePrevPage} 
-                            disabled={songPage === 1}
-                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                            {songPage} / {totalPages}
-                        </span>
-                        <button 
-                            onClick={handleNextPage} 
-                            disabled={songPage === totalPages}
-                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <ChevronRight size={20} />
-                        </button>
-                    </div>
-                )}
+                <SongResultsList 
+                  songs={currentSongs}
+                  currentPage={songPage}
+                  totalPages={totalPages}
+                  onSelectSong={handleSelectSong}
+                  onPrevPage={handlePrevPage}
+                  onNextPage={handleNextPage}
+                />
             </div>
         )}
 
         {searchStep === 'video' && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="flex items-center gap-2 mb-2">
-                    <button 
-                        onClick={() => updateState({ searchStep: 'song', results: [] })}
-                        className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                    >
-                        <ChevronLeft size={24} />
-                    </button>
-                    <div className="flex-1">
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 leading-tight">
-                            {selectedSong?.title}
-                        </h3>
-                        <p className="text-sm text-gray-500">{selectedSong?.artist}</p>
-                    </div>
-                </div>
-                
-                <div className="grid gap-3">
-                    {currentVideos.map(video => (
-                        <div 
-                            key={video.videoId}
-                            onClick={() => onVideoSelect(video)}
-                            className="flex gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all shadow-sm border border-transparent hover:border-blue-200 dark:hover:border-blue-800 group"
-                        >
-                            <div className="w-32 aspect-video bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 shadow-sm relative">
-                                <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                            </div>
-                            <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-                                <h4 className="font-bold text-sm text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    {video.title}
-                                </h4>
-                                <div className="flex items-center gap-1 text-xs text-gray-500">
-                                    <Youtube size={12} />
-                                    <span className="truncate">{video.artist}</span>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {totalVideoPages > 1 && (
-                    <div className="flex justify-center items-center gap-4 mt-4 pb-2">
-                    <button 
-                        onClick={handlePrevVideoPage} 
-                        disabled={videoPage === 1}
-                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        {videoPage} / {totalVideoPages}
-                    </span>
-                    <button 
-                        onClick={handleNextVideoPage} 
-                        disabled={videoPage === totalVideoPages}
-                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <ChevronRight size={20} />
-                    </button>
-                    </div>
-                )}
-            </div>
+            <VideoResultsList 
+              videos={currentVideos}
+              currentPage={videoPage}
+              totalPages={totalVideoPages}
+              selectedSong={selectedSong}
+              onSelectVideo={onVideoSelect}
+              onBack={() => updateState({ searchStep: 'song', results: [] })}
+              onPrevPage={handlePrevVideoPage}
+              onNextPage={handleNextVideoPage}
+            />
         )}
     </div>
   );
