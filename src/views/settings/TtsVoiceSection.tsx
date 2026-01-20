@@ -47,16 +47,16 @@ export function TtsVoiceSection() {
     }
 
     if (!targetLang) {
-      alert("No recognizable language tags found to auto-detect voice.");
+      alert(t('settings.noRecognizableLanguageTags'));
       return;
     }
 
     const bestVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang));
     if (bestVoice) {
       setVoiceURI(bestVoice.voiceURI);
-      alert(`Auto-selected voice: ${bestVoice.name} (${bestVoice.lang})`);
+      alert(t('settings.voiceSelected').replace('{{name}}', bestVoice.name).replace('{{lang}}', bestVoice.lang));
     } else {
-      alert(`No voice found for language code: ${targetLang}`);
+      alert(t('settings.noVoiceFound').replace('{{lang}}', targetLang));
     }
   };
 
@@ -96,7 +96,7 @@ export function TtsVoiceSection() {
           <option value="">{t('settings.defaultSystemVoice')}</option>
           {filteredVoices.map(v => (
             <option key={v.voiceURI} value={v.voiceURI}>
-              {v.name} ({v.lang}) {v.default ? ' — Default' : ''}
+              {v.name} ({v.lang}) {v.default ? t('settings.defaultSuffix') : ''}
             </option>
           ))}
         </select>

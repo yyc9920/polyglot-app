@@ -16,7 +16,7 @@ export function ContentSourcesSection() {
     e.preventDefault();
     if (!newUrl) return;
     if (savedUrls.includes(newUrl)) {
-      alert("URL already exists.");
+      alert(t('settings.urlExists'));
       return;
     }
     setSavedUrls([...savedUrls, newUrl]);
@@ -24,7 +24,7 @@ export function ContentSourcesSection() {
   };
 
   const handleRemoveUrl = (url: string) => {
-    if (confirm("Remove this URL?")) {
+    if (confirm(t('settings.removeUrl'))) {
       setSavedUrls(savedUrls.filter(u => u !== url));
     }
   };

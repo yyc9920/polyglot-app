@@ -8,6 +8,8 @@ import type { SongMaterials, PlaylistItem } from '../types';
 import useLanguage from '../hooks/useLanguage';
 import { LyricsView } from '../components/music/LyricsView';
 import { VideoSearchPanel } from '../components/music/VideoSearchPanel';
+import { BottomSheet } from '../components/BottomSheet';
+import { Music as MusicIcon } from 'lucide-react';
 
 export function MusicLearnView() {
   const { 
@@ -16,7 +18,9 @@ export function MusicLearnView() {
   const {
     musicState,
     setMusicState,
-    setPlaylist
+    setPlaylist,
+    songLyrics,
+    setSongLyrics
   } = useMusicContext();
   const { t, language, LANGUAGE_NAMES } = useLanguage();
   
@@ -63,24 +67,19 @@ export function MusicLearnView() {
     updateState({ selectedVideo: video, materials: null });
     
     const cacheKey = `song_lyrics_${video.videoId}_${language}`;
-    const cached = localStorage.getItem(cacheKey);
+    // Use synced storage instead of raw localStorage
+    const cached = songLyrics[cacheKey];
     
     const artist = selectedSong ? selectedSong.artist : (forceArtist || video.artist);
     const title = selectedSong ? selectedSong.title : video.title;
 
     if (cached) {
-        try {
-            const parsedMaterials = JSON.parse(cached);
-            updateState({ materials: parsedMaterials });
-            if (parsedMaterials.lyrics && parsedMaterials.lyrics.length > 0) {
-              const genre = selectedSong?.genre || parsedMaterials.genre;
-              addToPlaylist(video, artist, title, parsedMaterials.lyrics[0].original, genre);
-            }
-            return;
-        } catch (e) {
-            console.error("Failed to parse cached materials", e);
-            localStorage.removeItem(cacheKey);
+        updateState({ materials: cached });
+        if (cached.lyrics && cached.lyrics.length > 0) {
+          const genre = selectedSong?.genre || cached.genre;
+          addToPlaylist(video, artist, title, cached.lyrics[0].original, genre);
         }
+        return;
     }
 
     if (!apiKey) {
@@ -93,7 +92,10 @@ export function MusicLearnView() {
         const targetLanguageName = LANGUAGE_NAMES[language];
 
         const data = await generateSongLyrics(artist, title, apiKey, targetLanguageName);
-        localStorage.setItem(cacheKey, JSON.stringify(data));
+        
+        // Save to synced storage
+        setSongLyrics(prev => ({ ...prev, [cacheKey]: data }));
+        
         updateState({ materials: data });
         
         if (data.lyrics && data.lyrics.length > 0) {
@@ -112,13 +114,13 @@ export function MusicLearnView() {
       updateState({ materials: newMaterials });
       if (selectedVideo) {
           const cacheKey = `song_lyrics_${selectedVideo.videoId}_${language}`;
-          localStorage.setItem(cacheKey, JSON.stringify(newMaterials));
+          setSongLyrics(prev => ({ ...prev, [cacheKey]: newMaterials }));
       }
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
-      <div className={`${selectedVideo ? 'h-[40%] flex-shrink-0' : 'flex-1'} flex flex-col overflow-hidden`}>
+    <div className="h-full flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900 relative">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {!selectedVideo ? (
             <VideoSearchPanel onVideoSelect={handleSelectVideo} />
         ) : (
@@ -148,11 +150,27 @@ export function MusicLearnView() {
         )}
       </div>
 
-      {selectedVideo && (
-        <div className="flex-1 flex flex-col p-4 bg-white dark:bg-gray-800 overflow-hidden shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] z-10 rounded-t-3xl">             
-           <LyricsView onMaterialsUpdate={handleMaterialsUpdate} />
+      <BottomSheet
+        isOpen={!!selectedVideo}
+        onClose={() => updateState({ selectedVideo: null })}
+        initialSnap={0.5}
+        modal={false}
+        peekHeight={120}
+        title={
+            <div className="flex items-center gap-2 truncate">
+                <MusicIcon size={20} className="text-pink-500 flex-shrink-0" />
+                <h3 className="font-bold text-lg truncate">
+                    {t('music.lyricsAndPhrases') || 'Lyrics & Phrases'}
+                </h3>
+            </div>
+        }
+      >
+        <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-hidden">
+                <LyricsView onMaterialsUpdate={handleMaterialsUpdate} />
+            </div>
         </div>
-      )}
+      </BottomSheet>
     </div>
   );
 }

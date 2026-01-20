@@ -18,7 +18,7 @@ import { CheckCircle, AlertCircle, BookOpen } from 'lucide-react';
 
 export function LearnView() {
   const { phraseList, setPhraseList, status, apiKey, reviewMode, setReviewMode } = usePhraseAppContext();
-  const { t } = useLanguage();
+  const { t, language, LANGUAGE_NAMES } = useLanguage();
   const { speak } = useTTS();
 
   const [viewMode, setViewMode] = useLocalStorage<'card' | 'list'>('learnViewMode', 'card');
@@ -128,6 +128,7 @@ export function LearnView() {
       const isEnglish = item.tags.some(t => t.toLowerCase() === 'english' || t === '영어');
       const tagsStr = item.tags && item.tags.length > 0 ? `Tags: ${item.tags.join(', ')}` : '';
       const pronStr = (item.pronunciation && !isEnglish) ? `Pronunciation: ${item.pronunciation}` : '';
+      const targetLangName = LANGUAGE_NAMES[language] || 'English';
       
       const prompt = `
       Analyze this sentence as a friendly language tutor.
@@ -137,15 +138,15 @@ export function LearnView() {
       ${pronStr}
       ${tagsStr}
 
-      Please provide a structured explanation in Korean using **Markdown** format:
+      Please provide a structured explanation in ${targetLangName} using **Markdown** format:
       - Use **bold** for key terms.
       - Use lists for multiple points.
       - Structure:
-        ### 🧩 문법 (Grammar)
+        ### 🧩 Grammar
         Brief breakdown...
-        ### 💡 뉘앙스 (Nuance)
+        ### 💡 Nuance
         Contextual usage...
-        ### 📖 표현 (Phrase)
+        ### 📖 Phrase
         Key words...
 
       Keep the total response concise.

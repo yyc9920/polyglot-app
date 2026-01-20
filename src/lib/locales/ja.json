@@ -4,7 +4,23 @@
     "quiz": "クイズ",
     "build": "作成",
     "settings": "設定",
-    "music": "音楽"
+    "music": "音楽",
+    "home": "ホーム"
+  },
+  "home": {
+    "welcomeBack": "おかえりなさい！",
+    "progressMessage": "{{count}} フレーズをマスターしました。その調子！",
+    "percentComplete": "{{percent}}% 完了",
+    "totalPhrases": "合計 {{count}} フレーズ",
+    "todaysPicks": "今日のピックアップ",
+    "viewAll": "すべて見る",
+    "noPhrases": "学習するフレーズはまだありません！",
+    "createNewList": "新しいリストを作成",
+    "newList": "新しいリスト",
+    "takeQuiz": "クイズを受ける",
+    "dailyMission": "デイリーミッション",
+    "todaysKeywords": "今日のキーワード",
+    "todaysSong": "今日の曲"
   },
   "app": {
     "title": "Polyglot"
@@ -39,6 +55,8 @@
     "apiKeyStoredLocally": "キーはローカル保存されます。",
     "youtubeApiKey": "YouTube APIキー",
     "youtubeRequiredForMusic": "音楽検索に必要。",
+    "geniusApiKey": "Genius APIキー",
+    "geniusRequiredForExactLyrics": "Geniusデータベースから正確な歌詞を取得するために必要です。",
     "getApiKey": "キー取得",
     "ttsVoice": "読み上げ音声",
     "autoDetect": "自動検出",
@@ -166,7 +184,16 @@
     "generateCard": "生成",
     "clickSparkle": "歌詞タブのキラキラで生成！",
     "selectVideo": "動画を選択。",
-    "savedBadge": "保存済"
+    "savedBadge": "保存済",
+    "noSongsInPlaylist": "プレイリストに曲がありません。",
+    "searchAndSelectVideo": "動画を検索して選択すると自動的に追加されます。",
+    "songsCount": "{{count}} 曲",
+    "removeFromPlaylist": "プレイリストから削除しますか？",
+    "myPlaylist": "マイプレイリスト",
+    "original": "原文",
+    "translation": "翻訳",
+    "pasteOriginal": "ここに原文の歌詞を貼り付け...",
+    "pasteTranslation": "ここに翻訳を貼り付け..."
   },
   "quiz": {
     "start": "開始",

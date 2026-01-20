@@ -34,7 +34,7 @@ export function DataManagementSection() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!confirm("Loading a backup will OVERWRITE your current data. Continue?")) {
+    if (!confirm(t('settings.overwriteConfirm'))) {
       e.target.value = ''; // reset input
       return;
     }
@@ -47,7 +47,7 @@ export function DataManagementSection() {
         
         // Basic validation - check for phraseList OR vocabList (migration)
         const list = data.phraseList || data.vocabList;
-        if (!list || !Array.isArray(list)) throw new Error("Invalid format: missing phraseList/vocabList");
+        if (!list || !Array.isArray(list)) throw new Error(t('settings.invalidFormat'));
 
         setPhraseList(list);
         if (data.status) setStatus(data.status);
@@ -57,9 +57,9 @@ export function DataManagementSection() {
         // Backward compatibility
         if (data.savedUrl && (!data.savedUrls || data.savedUrls.length === 0)) setSavedUrls([data.savedUrl]);
 
-        alert("Data loaded successfully!");
+        alert(t('settings.loadSuccess'));
       } catch (err: any) {
-        alert(`Failed to load data: ${err.message}`);
+        alert(t('settings.loadFailed').replace('{{error}}', err.message));
       } finally {
         e.target.value = ''; // reset input
       }

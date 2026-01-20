@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PhraseCard } from '../../components/PhraseCard';
 import { FunButton } from '../../components/FunButton';
 import { useTTS } from '../../hooks/useTTS';
+import { useDailyStats } from '../../hooks/useDailyStats';
 import useLanguage from '../../hooks/useLanguage';
 import type { PhraseItem, LearningStatus } from '../../types';
 
@@ -33,6 +34,7 @@ export function CardDeck({
 }: CardDeckProps) {
   const { t } = useLanguage();
   const { speak } = useTTS();
+  const { increment } = useDailyStats();
   
   const [swipeDiff, setSwipeDiff] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -70,8 +72,12 @@ export function CardDeck({
        const direction = diff > 0 ? 'right' : 'left';
        finishSwipe(direction);
     } else if (Math.abs(diff) < tapThreshold && timeElapsed < 300) {
-       if (!isFlipped) speak(displayList[currentIndex].sentence);
+       if (!isFlipped) {
+         speak(displayList[currentIndex].sentence);
+         increment('speakCount');
+       }
        setIsFlipped(!isFlipped);
+       increment('reviewCount', 1, displayList[currentIndex].id);
        setSwipeDiff(0);
     } else {
        setSwipeDiff(0);
@@ -136,7 +142,10 @@ export function CardDeck({
                 item={displayList[currentIndex]}
                 status={status}
                 side="front"
-                onSpeak={() => speak(displayList[currentIndex].sentence)}
+                onSpeak={() => {
+                  speak(displayList[currentIndex].sentence);
+                  increment('speakCount');
+                }}
                 onAiExplain={onAiExplain}
                 onOpenMemo={onOpenMemo}
                 onEdit={onEdit}

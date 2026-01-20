@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode, type Dispatch, type SetStateAction } from 'react';
-import type { LearningStatus, PhraseItem, ViewMode } from '../types';
+import type { LearningStatus, PhraseItem, ViewMode, QuizItem } from '../types';
 import { SAMPLE_DATA } from '../constants';
 import useCloudStorage from '../hooks/useCloudStorage';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -29,6 +29,8 @@ interface PhraseAppContextType {
   handleDeleteAllData: () => void;
   syncUrl: (url: string) => Promise<void>;
   totalCount: number;
+  customQuizQueue: import('../types').QuizItem[];
+  setCustomQuizQueue: Dispatch<SetStateAction<import('../types').QuizItem[]>>;
 }
 
 const PhraseContext = createContext<PhraseAppContextType | undefined>(undefined);
@@ -68,8 +70,9 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
   const lastFmApiKey = import.meta.env.VITE_LASTFM_API_KEY || '';
   const youtubeApiKey = import.meta.env.VITE_YOUTUBE_API_KEY || '';
   
-  const [currentView, setCurrentView] = useState<ViewMode>('learn');
+  const [currentView, setCurrentView] = useState<ViewMode>('home');
   const [reviewMode, setReviewMode] = useState(false);
+  const [customQuizQueue, setCustomQuizQueue] = useState<QuizItem[]>([]);
 
   // Migration for old savedUrl (local storage only)
   const [oldSavedUrl, setOldSavedUrl] = useLocalStorage<string>('csvSourceUrl', '');
@@ -237,6 +240,8 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
     handleDeleteAllData,
     syncUrl,
     totalCount,
+    customQuizQueue,
+    setCustomQuizQueue
   };
 
   return <PhraseContext.Provider value={value}>{children}</PhraseContext.Provider>;

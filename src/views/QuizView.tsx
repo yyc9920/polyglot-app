@@ -7,6 +7,7 @@ import { triggerConfetti } from '../lib/fun-utils';
 import useLanguage from '../hooks/useLanguage';
 import { createQuizItem, LEVELS, POINT_SYSTEM } from '../lib/quiz-utils';
 import { useTTS } from '../hooks/useTTS';
+import { useDailyStats } from '../hooks/useDailyStats';
 
 import { QuizSetup } from './quiz/QuizSetup';
 import { QuizSummary } from './quiz/QuizSummary';
@@ -15,10 +16,15 @@ import { QuizQuestion } from './quiz/QuizQuestion';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-export function QuizView() {
+export interface QuizViewProps {
+  customQueue?: QuizItem[];
+}
+
+export function QuizView({ customQueue }: QuizViewProps) {
   const { phraseList, status, setStatus } = usePhraseAppContext();
   const { t } = useLanguage();
   const { speak } = useTTS();
+  const { increment } = useDailyStats();
 
   const [isFlipped, setIsFlipped] = useState(false);
   const [isPlaying, setIsPlaying] = useLocalStorage<boolean>('quizIsPlaying', false);
@@ -78,6 +84,18 @@ export function QuizView() {
       setIsListening(false);
     };
   };
+
+  useEffect(() => {
+    if (customQueue && customQueue.length > 0) {
+        setQuizQueue(customQueue);
+        setCurrentIndex(0);
+        setInput('');
+        setFeedback('none');
+        setSessionPoints(0);
+        setShowSummary(false);
+        setIsPlaying(true);
+    }
+  }, [customQueue]);
 
   const startQuiz = () => {
     let list = [...phraseList];
@@ -204,6 +222,7 @@ export function QuizView() {
     } else {
       setShowSummary(true);
       triggerConfetti();
+      increment('quizCount');
     }
   };
 
@@ -249,7 +268,7 @@ export function QuizView() {
       onSubmit={submitAnswer}
       onNext={nextQuestion}
       onExit={() => setIsPlaying(false)}
-      onSpeak={speak}
+      onSpeak={(text) => { speak(text); increment('speakCount'); }}
       isFlipped={isFlipped}
       setIsFlipped={setIsFlipped}
     />

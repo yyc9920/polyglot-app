@@ -1,6 +1,7 @@
 import { X, LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { FunButton } from './FunButton';
+import useLanguage from '../hooks/useLanguage';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface LoginModalProps {
 
 export function LoginModal({ onClose }: LoginModalProps) {
   const { signIn, user } = useAuth();
+  const { t } = useLanguage();
 
   const handleLogin = async () => {
     try {
@@ -15,7 +17,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Failed to sign in");
+      alert(t('login.failed'));
     }
   };
 
@@ -26,7 +28,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
           <h4 className="font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
-            <LogIn size={20} className="text-blue-500" /> Sign In
+            <LogIn size={20} className="text-blue-500" /> {t('login.title')}
           </h4>
           <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
             <X size={20} />
@@ -35,7 +37,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
         
         <div className="p-8 flex flex-col items-center gap-4">
             <p className="text-center text-gray-600 dark:text-gray-300 mb-2">
-                Sign in to save your progress and access your phrases from any device.
+                {t('login.description')}
             </p>
             <FunButton 
                 onClick={handleLogin} 
@@ -49,7 +51,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
-                Sign in with Google
+                {t('login.googleSignIn')}
             </FunButton>
         </div>
       </div>

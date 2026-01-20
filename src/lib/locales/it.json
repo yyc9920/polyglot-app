@@ -4,7 +4,23 @@
     "quiz": "Quiz",
     "build": "Crea",
     "settings": "Impostazioni",
-    "music": "Musica"
+    "music": "Musica",
+    "home": "Home"
+  },
+  "home": {
+    "welcomeBack": "Bentornato!",
+    "progressMessage": "Hai imparato {{count}} frasi. Continua così!",
+    "percentComplete": "{{percent}}% Completado",
+    "totalPhrases": "{{count}} Frasi totali",
+    "todaysPicks": "Scelti per te",
+    "viewAll": "Vedi tutto",
+    "noPhrases": "Nessuna frase da imparare ancora!",
+    "createNewList": "Crea nuova lista",
+    "newList": "Nuova lista",
+    "takeQuiz": "Fai il quiz",
+    "dailyMission": "Missione giornaliera",
+    "todaysKeywords": "Parole chiave di oggi",
+    "todaysSong": "Canzone di oggi"
   },
   "app": {
     "title": "Polyglot"
@@ -39,6 +55,8 @@
     "apiKeyStoredLocally": "Chiave salvata localmente.",
     "youtubeApiKey": "Chiave API YouTube",
     "youtubeRequiredForMusic": "Per musica.",
+    "geniusApiKey": "Chiave API Genius",
+    "geniusRequiredForExactLyrics": "Richiesto per recuperare i testi esatti dal database Genius.",
     "getApiKey": "Ottieni chiave",
     "ttsVoice": "Voce TTS",
     "autoDetect": "Auto-rilevamento",
@@ -166,7 +184,16 @@
     "generateCard": "Genera",
     "clickSparkle": "Clicca scintilla in Testo!",
     "selectVideo": "Seleziona video.",
-    "savedBadge": "SALVATO"
+    "savedBadge": "SALVATO",
+    "noSongsInPlaylist": "Nessuna canzone nella playlist.",
+    "searchAndSelectVideo": "Cerca e seleziona un video per aggiungerlo automaticamente.",
+    "songsCount": "{{count}} canzoni",
+    "removeFromPlaylist": "Rimuovere dalla playlist?",
+    "myPlaylist": "La mia playlist",
+    "original": "Originale",
+    "translation": "Traduzione",
+    "pasteOriginal": "Incolla qui il testo originale...",
+    "pasteTranslation": "Incolla qui la traduzione..."
   },
   "quiz": {
     "start": "Avvia Quiz",

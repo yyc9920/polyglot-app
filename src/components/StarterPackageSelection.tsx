@@ -1,10 +1,11 @@
 import { Package, Check, ShoppingCart, Globe } from 'lucide-react';
 import { usePhraseAppContext } from '../context/PhraseContext';
-import { LANGUAGE_NAMES, type Language } from '../hooks/useLanguage';
+import useLanguage, { LANGUAGE_NAMES, type Language } from '../hooks/useLanguage';
 import { type LanguageCode } from '../data/phraseDictionary';
 
 export function StarterPackageSelection() {
   const { purchasedPackages,addStarterPackage } = usePhraseAppContext();
+  const { t } = useLanguage();
   
   // TODO: Get current source language from somewhere if needed, currently hardcoded to 'en' or we can add a selector later.
   // For now, let's assume the user wants to learn a new language FROM English, or we can use the app's current language.
@@ -13,7 +14,7 @@ export function StarterPackageSelection() {
   
   const handlePurchase = (langCode: string) => {
     // Mock payment flow
-    if (confirm(`Purchase Starter Package for ${LANGUAGE_NAMES[langCode as Language]}? (Mock Payment)`)) {
+    if (confirm(t('packages.purchaseConfirm').replace('{{lang}}', LANGUAGE_NAMES[langCode as Language]))) {
       addStarterPackage(langCode as LanguageCode, 'en'); // Defaulting source to English for now
     }
   };
@@ -22,11 +23,11 @@ export function StarterPackageSelection() {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <Package className="text-purple-500" size={24} />
-        <h2 className="text-xl font-bold">Starter Packages (100 Phrases)</h2>
+        <h2 className="text-xl font-bold">{t('packages.title')}</h2>
       </div>
       
       <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-        Jumpstart your learning with 100 essential phrases including Greetings, Travel, Dining, and more.
+        {t('packages.description')}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -52,7 +53,7 @@ export function StarterPackageSelection() {
                 <div>
                   <div className="font-bold">{LANGUAGE_NAMES[code]}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {isPurchased ? 'Purchased' : '.99'}
+                    {isPurchased ? t('packages.purchased') : '.99'}
                   </div>
                 </div>
               </div>

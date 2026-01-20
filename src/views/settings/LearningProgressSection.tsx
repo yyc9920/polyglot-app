@@ -21,7 +21,8 @@ export function LearningProgressSection() {
   const filteredTotalCount = filteredList.length;
   const filteredCompleted = filteredList.filter(v => status.completedIds.includes(v.id)).length;
   const filteredIncorrect = filteredList.filter(v => status.incorrectIds.includes(v.id)).length;
-  const progressPercent = filteredTotalCount > 0 ? Math.round((filteredCompleted / filteredTotalCount) * 100) : 0;
+  const progressPercent = filteredTotalCount > 0 ? (filteredCompleted / filteredTotalCount) * 100 : 0;
+  const formattedProgress = progressPercent.toFixed(2);
 
   const handleStartReview = () => {
     setReviewMode(true);
@@ -42,7 +43,11 @@ export function LearningProgressSection() {
             onChange={(e) => setProgressFilterTag(e.target.value)}
             className="bg-transparent text-sm font-medium focus:outline-none text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 py-1"
           >
-            {allTags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
+            {allTags.map(tag => (
+              <option key={tag} value={tag}>
+                {tag === 'All' ? t('common.all') : tag}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -53,7 +58,7 @@ export function LearningProgressSection() {
             <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-200 dark:text-gray-700" />
             <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * progressPercent) / 100} className="text-blue-500 transition-all duration-1000 ease-out" />
           </svg>
-          <span className="absolute text-xl font-bold text-gray-700 dark:text-gray-200">{progressPercent}%</span>
+          <span className="absolute text-xl font-bold text-gray-700 dark:text-gray-200">{formattedProgress}%</span>
         </div>
         
         <div className="flex-1 space-y-3 min-w-0">

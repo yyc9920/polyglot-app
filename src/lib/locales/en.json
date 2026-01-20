@@ -4,7 +4,33 @@
     "quiz": "Quiz",
     "build": "Build",
     "settings": "Settings",
-    "music": "Music"
+    "music": "Music",
+    "home": "Home"
+  },
+  "home": {
+    "welcomeBack": "Welcome Back!",
+    "progressMessage": "You've mastered {{count}} phrases. Keep it up!",
+    "percentComplete": "{{percent}}% Complete",
+    "totalPhrases": "{{count}} Total Phrases",
+    "todaysPicks": "Today's Picks",
+    "viewAll": "View All",
+    "noPhrases": "No phrases to learn yet!",
+    "createNewList": "Create New List",
+    "newList": "New List",
+    "takeQuiz": "Take Quiz",
+    "takeDailyQuiz": "Take Daily Quiz",
+    "dailyQuizDesc": "Test yourself on today's recommended phrases and keywords.",
+    "dailyMission": "Daily Mission",
+    "todaysKeywords": "Today's Keywords",
+    "todaysSong": "Today's Song",
+    "noPhrasesForKeyword": "No phrases found for this keyword.",
+    "mission": {
+      "review": "Review {{count}} phrases",
+      "quiz": "Take a Quick Quiz",
+      "speak": "Practice speaking {{count}} times",
+      "add": "Add {{count}} new phrases",
+      "listen": "Listen to a song"
+    }
   },
   "app": {
     "title": "Polyglot"
@@ -16,6 +42,8 @@
     "signOut": "Sign Out",
     "syncProgress": "Sign in to sync your progress.",
     "learningProgress": "Learning Progress",
+    "learningLabel": "Learning: {{lang}}",
+    "currentlyLearning": "Currently learning: {{lang}}",
     "completed": "Completed",
     "toReview": "To Review",
     "startReviewSession": "Start Review Session",
@@ -46,6 +74,7 @@
     "autoDetect": "Auto-detect",
     "searchVoices": "Search voices (e.g. 'Google', 'jp')...",
     "defaultSystemVoice": "Default System Voice",
+    "defaultSuffix": " — Default",
     "noVoicesMatch": "No voices match your search.",
     "noRecognizableLanguageTags": "No recognizable language tags found to auto-detect voice.",
     "voiceSelected": "Auto-selected voice: {{name}} ({{lang}})",
@@ -53,6 +82,10 @@
     "dataManagement": "Data Management",
     "backupData": "Backup Data (Save)",
     "loadBackup": "Load Backup",
+    "overwriteConfirm": "Loading a backup will OVERWRITE your current data. Continue?",
+    "invalidFormat": "Invalid format: missing phraseList/vocabList",
+    "loadSuccess": "Data loaded successfully!",
+    "loadFailed": "Failed to load data: {{error}}",
     "resetProgress": "Reset Learning Progress",
     "deleteAllData": "Delete All Data (Hard Reset)",
     "csvGuideTitle": "CSV Format Guide",
@@ -177,7 +210,8 @@
     "original": "Original",
     "translation": "Translation",
     "pasteOriginal": "Paste original lyrics here...",
-    "pasteTranslation": "Paste translation here..."
+    "pasteTranslation": "Paste translation here...",
+    "lyricsAndPhrases": "Lyrics & Phrases"
   },
   "quiz": {
     "start": "Start Quiz",
@@ -257,5 +291,17 @@
     "updateList": "Update List",
     "viewMemo": "View Memo",
     "clickToChangeLanguage": "Click to change language"
+  },
+  "packages": {
+    "title": "Starter Packages (100 Phrases)",
+    "description": "Jumpstart your learning with 100 essential phrases including Greetings, Travel, Dining, and more.",
+    "purchaseConfirm": "Purchase Starter Package for {{lang}}? (Mock Payment)",
+    "purchased": "Purchased"
+  },
+  "login": {
+    "title": "Sign In",
+    "description": "Sign in to save your progress and access your phrases from any device.",
+    "googleSignIn": "Sign in with Google",
+    "failed": "Failed to sign in"
   }
 }

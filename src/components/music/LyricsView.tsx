@@ -10,12 +10,16 @@ import type { PhraseItem, SongMaterials } from '../../types';
 import { generatePhraseFromLyric } from '../../lib/gemini';
 import { generateId, detectLanguage } from '../../lib/utils';
 
+import type { MusicContextType } from '../../context/MusicContext';
+
 interface LyricsViewProps {
   onMaterialsUpdate: (materials: SongMaterials) => void;
+  contextOverrides?: Partial<MusicContextType>;
 }
 
-export function LyricsView({ onMaterialsUpdate }: LyricsViewProps) {
-  const { musicState, setMusicState, setPlaylist } = useMusicContext();
+export function LyricsView({ onMaterialsUpdate, contextOverrides }: LyricsViewProps) {
+  const globalContext = useMusicContext();
+  const { musicState, setMusicState, setPlaylist } = contextOverrides ? { ...globalContext, ...contextOverrides } : globalContext;
   const { materials, activeTab, selectedVideo, isLoading } = musicState;
   const { apiKey, phraseList, setPhraseList } = usePhraseAppContext();
   const { t, language, LANGUAGE_NAMES } = useLanguage();
@@ -167,36 +171,36 @@ export function LyricsView({ onMaterialsUpdate }: LyricsViewProps) {
         </button>
     </div>
 
-    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar h-full flex flex-col min-h-0">
         {activeTab === 'lyrics' && (
-            <div className="space-y-6 pb-10">
+            <div className="space-y-6 pb-10 flex-1 flex flex-col min-h-0">
                 {isEditingLyrics ? (
-                    <div className="space-y-4 p-2">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-600 dark:text-blue-300 flex items-start gap-2">
+                    <div className="space-y-4 p-2 h-full flex flex-col min-h-0">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-600 dark:text-blue-300 flex items-start gap-2 flex-shrink-0">
                             <Sparkles size={16} className="mt-0.5 flex-shrink-0" />
                             <p>{t('music.editLyricsGuide') || "Edit the lyrics below. Paste the original lyrics on the left and translation on the right. Lines should match."}</p>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 h-96">
-                            <div className="flex flex-col gap-2">
+                        <div className="grid grid-cols-2 gap-2 flex-1 min-h-0 overflow-hidden">
+                            <div className="flex flex-col gap-2 h-full min-h-0">
                                 <label className="text-xs font-bold text-gray-500 uppercase">{t('music.original')}</label>
                                 <textarea 
-                                    className="flex-1 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                    className="flex-1 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none overflow-y-auto"
                                     value={editForm.original}
                                     onChange={e => setEditForm(prev => ({ ...prev, original: e.target.value }))}
                                     placeholder={t('music.pasteOriginal')}
                                 />
                             </div>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 h-full min-h-0">
                                 <label className="text-xs font-bold text-gray-500 uppercase">{t('music.translation')}</label>
                                 <textarea 
-                                    className="flex-1 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                    className="flex-1 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none overflow-y-auto"
                                     value={editForm.translated}
                                     onChange={e => setEditForm(prev => ({ ...prev, translated: e.target.value }))}
                                     placeholder={t('music.pasteTranslation')}
                                 />
                             </div>
                         </div>
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex gap-2 justify-end flex-shrink-0">
                             <FunButton onClick={() => setIsEditingLyrics(false)} variant="neutral">
                                 <X size={16} className="mr-2" /> {t('common.cancel')}
                             </FunButton>

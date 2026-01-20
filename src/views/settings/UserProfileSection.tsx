@@ -37,10 +37,10 @@ export function UserProfileSection({ onShowLoginModal }: UserProfileSectionProps
           <div className="flex-1 min-w-0">
             <p className="font-bold text-gray-800 dark:text-gray-100 truncate">{user.displayName}</p>
             <p className="text-sm text-gray-500 truncate">{user.email}</p>
-            {learningLangName && (
+             {learningLangName && (
                <div className="flex items-center gap-1 mt-1 text-xs text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full w-fit">
                  <Globe size={12} />
-                 <span>Learning: {learningLangName}</span>
+                 <span>{t('settings.learningLabel').replace('{{lang}}', learningLangName)}</span>
                </div>
             )}
           </div>
@@ -66,7 +66,7 @@ export function UserProfileSection({ onShowLoginModal }: UserProfileSectionProps
           {learningLangName && (
             <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
                <Globe size={12} />
-               <span>Currently learning: {learningLangName}</span>
+               <span>{t('settings.currentlyLearning').replace('{{lang}}', learningLangName)}</span>
             </div>
           )}
         </div>

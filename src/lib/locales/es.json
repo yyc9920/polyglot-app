@@ -4,7 +4,33 @@
     "quiz": "Cuestionario",
     "build": "Construir",
     "settings": "Configuración",
-    "music": "Música"
+    "music": "Música",
+    "home": "Inicio"
+  },
+  "home": {
+    "welcomeBack": "¡Bienvenido de nuevo!",
+    "progressMessage": "Has dominado {{count}} frases. ¡Sigue así!",
+    "percentComplete": "{{percent}}% Completado",
+    "totalPhrases": "{{count}} Frases en total",
+    "todaysPicks": "Selecciones de hoy",
+    "viewAll": "Ver todo",
+    "noPhrases": "¡No hay frases para aprender aún!",
+    "createNewList": "Crear nueva lista",
+    "newList": "Nueva lista",
+    "takeQuiz": "Tomar cuestionario",
+    "dailyMission": "Misión diaria",
+    "todaysKeywords": "Palabras clave de hoy",
+    "todaysSong": "Canción de hoy",
+    "takeDailyQuiz": "Tomar Cuestionario Diario",
+    "dailyQuizDesc": "Ponte a prueba con las frases y palabras clave recomendadas de hoy.",
+    "noPhrasesForKeyword": "No se encontraron frases para esta palabra clave.",
+    "mission": {
+      "review": "Repasar {{count}} frases",
+      "quiz": "Tomar un Cuestionario Rápido",
+      "speak": "Practicar hablar {{count}} veces",
+      "add": "Añadir {{count}} frases nuevas",
+      "listen": "Escuchar una canción"
+    }
   },
   "app": {
     "title": "Polyglot"
@@ -16,6 +42,8 @@
     "signOut": "Cerrar sesión",
     "syncProgress": "Inicia sesión para sincronizar tu progreso.",
     "learningProgress": "Progreso de aprendizaje",
+    "learningLabel": "Aprendiendo: {{lang}}",
+    "currentlyLearning": "Actualmente aprendiendo: {{lang}}",
     "completed": "Completado",
     "toReview": "Para revisar",
     "startReviewSession": "Iniciar sesión de repaso",
@@ -39,11 +67,14 @@
     "apiKeyStoredLocally": "Tu clave se almacena localmente.",
     "youtubeApiKey": "Clave API YouTube Data",
     "youtubeRequiredForMusic": "Necesario para videos musicales.",
+    "geniusApiKey": "Clave API de Genius",
+    "geniusRequiredForExactLyrics": "Requerido para obtener letras exactas de la base de datos Genius.",
     "getApiKey": "Obtener clave",
     "ttsVoice": "Voz TTS",
     "autoDetect": "Auto-detectar",
     "searchVoices": "Buscar voces...",
     "defaultSystemVoice": "Voz del sistema",
+    "defaultSuffix": " — Predeterminado",
     "noVoicesMatch": "No hay voces coincidentes.",
     "noRecognizableLanguageTags": "No se encontraron etiquetas de idioma.",
     "voiceSelected": "Voz seleccionada: {{name}} ({{lang}})",
@@ -51,6 +82,10 @@
     "dataManagement": "Gestión de datos",
     "backupData": "Copia de seguridad",
     "loadBackup": "Cargar copia",
+    "overwriteConfirm": "Cargar una copia de seguridad SOBRESCRIBIRÁ sus datos actuales. ¿Continuar?",
+    "invalidFormat": "Formato inválido: falta phraseList/vocabList",
+    "loadSuccess": "¡Datos cargados con éxito!",
+    "loadFailed": "Error al cargar datos: {{error}}",
     "resetProgress": "Restablecer progreso",
     "deleteAllData": "Borrar todo (Reinicio)",
     "csvGuideTitle": "Guía CSV",
@@ -166,7 +201,16 @@
     "generateCard": "Generar",
     "clickSparkle": "¡Clic en icono brillo en Letras!",
     "selectVideo": "Selecciona video.",
-    "savedBadge": "GUARDADO"
+    "savedBadge": "GUARDADO",
+    "noSongsInPlaylist": "Aún no hay canciones en la lista de reproducción.",
+    "searchAndSelectVideo": "Busca y selecciona un video para agregarlo automáticamente.",
+    "songsCount": "{{count}} canciones",
+    "removeFromPlaylist": "¿Eliminar de la lista de reproducción?",
+    "myPlaylist": "Mi lista de reproducción",
+    "original": "Original",
+    "translation": "Traducción",
+    "pasteOriginal": "Pega la letra original aquí...",
+    "pasteTranslation": "Pega la traducción aquí..."
   },
   "quiz": {
     "start": "Empezar",
@@ -244,6 +288,19 @@
     "removeItem": "Eliminar elemento",
     "saveChanges": "Guardar Cambios",
     "updateList": "Actualizar Lista",
-    "viewMemo": "Ver Memo"
+    "viewMemo": "Ver Memo",
+    "clickToChangeLanguage": "Haz clic para cambiar el idioma"
+  },
+  "packages": {
+    "title": "Paquetes de Inicio (100 Frases)",
+    "description": "Comienza tu aprendizaje con 100 frases esenciales incluyendo Saludos, Viajes, Comidas y más.",
+    "purchaseConfirm": "¿Comprar Paquete de Inicio para {{lang}}? (Pago Simulado)",
+    "purchased": "Comprado"
+  },
+  "login": {
+    "title": "Iniciar Sesión",
+    "description": "Inicia sesión para guardar tu progreso y acceder a tus frases desde cualquier dispositivo.",
+    "googleSignIn": "Iniciar sesión con Google",
+    "failed": "Error al iniciar sesión"
   }
 }

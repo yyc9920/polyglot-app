@@ -4,7 +4,23 @@
     "quiz": "测验",
     "build": "构建",
     "settings": "设置",
-    "music": "音乐"
+    "music": "音乐",
+    "home": "首页"
+  },
+  "home": {
+    "welcomeBack": "欢迎回来！",
+    "progressMessage": "您已掌握 {{count}} 个短语。继续保持！",
+    "percentComplete": "{{percent}}% 已完成",
+    "totalPhrases": "共 {{count}} 个短语",
+    "todaysPicks": "今日精选",
+    "viewAll": "查看全部",
+    "noPhrases": "暂无学习短语！",
+    "createNewList": "创建新列表",
+    "newList": "新列表",
+    "takeQuiz": "参加测验",
+    "dailyMission": "每日任务",
+    "todaysKeywords": "今日关键词",
+    "todaysSong": "今日歌曲"
   },
   "app": {
     "title": "Polyglot"
@@ -39,6 +55,8 @@
     "apiKeyStoredLocally": "密钥存储在本地。",
     "youtubeApiKey": "YouTube API密钥",
     "youtubeRequiredForMusic": "音乐视频需要。",
+    "geniusApiKey": "Genius API密钥",
+    "geniusRequiredForExactLyrics": "需要此密钥以从Genius数据库获取准确歌词。",
     "getApiKey": "获取密钥",
     "ttsVoice": "语音朗读",
     "autoDetect": "自动检测",
@@ -166,7 +184,16 @@
     "generateCard": "生成卡片",
     "clickSparkle": "转到歌词标签并点击闪烁图标生成短语！",
     "selectVideo": "选择视频以生成材料。",
-    "savedBadge": "已保存"
+    "savedBadge": "已保存",
+    "noSongsInPlaylist": "播放列表中暂无歌曲。",
+    "searchAndSelectVideo": "搜索并选择视频以自动添加。",
+    "songsCount": "{{count}} 首歌",
+    "removeFromPlaylist": "从播放列表中移除？",
+    "myPlaylist": "我的播放列表",
+    "original": "原文",
+    "translation": "译文",
+    "pasteOriginal": "在此粘贴原文歌词...",
+    "pasteTranslation": "在此粘贴译文..."
   },
   "quiz": {
     "start": "开始测验",

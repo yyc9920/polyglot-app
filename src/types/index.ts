@@ -54,4 +54,4 @@ export interface PlaylistItem {
   addedAt: number;
 }
 
-export type ViewMode = 'learn' | 'quiz' | 'builder' | 'settings' | 'music';
+export type ViewMode = 'home' | 'learn' | 'quiz' | 'builder' | 'settings' | 'music';

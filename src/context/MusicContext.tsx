@@ -34,14 +34,16 @@ export const initialMusicState: MusicViewState = {
   videoPage: 1,
 };
 
-interface MusicContextType {
+export interface MusicContextType {
   musicState: MusicViewState;
   setMusicState: Dispatch<SetStateAction<MusicViewState>>;
   playlist: PlaylistItem[];
   setPlaylist: Dispatch<SetStateAction<PlaylistItem[]>>;
+  songLyrics: Record<string, SongMaterials>;
+  setSongLyrics: Dispatch<SetStateAction<Record<string, SongMaterials>>>;
 }
 
-const MusicContext = createContext<MusicContextType | undefined>(undefined);
+export const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 export const MusicProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [musicState, setMusicState] = useState<MusicViewState>(initialMusicState);
@@ -57,11 +59,20 @@ export const MusicProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   );
 
+  const [songLyrics, setSongLyrics] = useCloudStorage<Record<string, SongMaterials>>(
+    'song_lyrics',
+    {},
+    undefined,
+    (local, cloud) => ({ ...local, ...cloud })
+  );
+
   const value = {
     musicState,
     setMusicState,
     playlist,
     setPlaylist,
+    songLyrics,
+    setSongLyrics,
   };
 
   return <MusicContext.Provider value={value}>{children}</MusicContext.Provider>;

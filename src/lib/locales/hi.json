@@ -4,7 +4,23 @@
     "quiz": "क्विज़",
     "build": "बनाएं",
     "settings": "सेटिंग्स",
-    "music": "संगीत"
+    "music": "संगीत",
+    "home": "होम"
+  },
+  "home": {
+    "welcomeBack": "वापसी पर स्वागत है!",
+    "progressMessage": "आपने {{count}} वाक्यांशों में महारत हासिल की है। इसे जारी रखें!",
+    "percentComplete": "{{percent}}% पूर्ण",
+    "totalPhrases": "{{count}} कुल वाक्यांश",
+    "todaysPicks": "आज के चयन",
+    "viewAll": "सभी देखें",
+    "noPhrases": "सीखने के लिए अभी कोई वाक्यांश नहीं!",
+    "createNewList": "नई सूची बनाएं",
+    "newList": "नई सूची",
+    "takeQuiz": "क्विज़ लें",
+    "dailyMission": "दैनिक मिशन",
+    "todaysKeywords": "आज के कीवर्ड",
+    "todaysSong": "आज का गाना"
   },
   "app": {
     "title": "Polyglot"
@@ -39,6 +55,8 @@
     "apiKeyStoredLocally": "कुंजी स्थानीय रूप से संग्रहीत है।",
     "youtubeApiKey": "YouTube API कुंजी",
     "youtubeRequiredForMusic": "संगीत के लिए आवश्यक।",
+    "geniusApiKey": "Genius API कुंजी",
+    "geniusRequiredForExactLyrics": "Genius डेटाबेस से सटीक गीत के बोल लाने के लिए आवश्यक है।",
     "getApiKey": "कुंजी प्राप्त करें",
     "ttsVoice": "TTS आवाज़",
     "autoDetect": "ऑटो-डिटेक्ट",
@@ -166,7 +184,16 @@
     "generateCard": "कार्ड बनाएं",
     "clickSparkle": "गीत टैब में चमक पर क्लिक करें!",
     "selectVideo": "वीडियो चुनें।",
-    "savedBadge": "सहेजा गया"
+    "savedBadge": "सहेजा गया",
+    "noSongsInPlaylist": "प्लेलिस्ट में अभी कोई गाना नहीं है।",
+    "searchAndSelectVideo": "स्वचालित रूप से जोड़ने के लिए वीडियो खोजें और चुनें।",
+    "songsCount": "{{count}} गाने",
+    "removeFromPlaylist": "प्लेलिस्ट से हटाएं?",
+    "myPlaylist": "मेरी प्लेलिस्ट",
+    "original": "मूल",
+    "translation": "अनुवाद",
+    "pasteOriginal": "मूल गीत यहाँ पेस्ट करें...",
+    "pasteTranslation": "अनुवाद यहाँ पेस्ट करें..."
   },
   "quiz": {
     "start": "क्विज़ शुरू",

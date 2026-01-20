@@ -7,6 +7,7 @@ import {
   Sun,
   Sparkles,
   Music,
+  Home,
 } from 'lucide-react';
 import { GlobalStyles, NavButton } from './components/ui';
 import useTheme from './hooks/useTheme';
@@ -18,10 +19,11 @@ import { QuizView } from './views/QuizView';
 import { BuilderView } from './views/BuilderView';
 import { SettingsView } from './views/SettingsView';
 import { MusicLearnView } from './views/MusicLearnView';
+import { HomeView } from './views/HomeView';
 import useLanguage from './hooks/useLanguage';
 
 function AppContent() {
-  const { currentView, setCurrentView } = usePhraseAppContext();
+  const { currentView, setCurrentView, customQuizQueue } = usePhraseAppContext();
   const { darkMode, toggleTheme } = useTheme();
   const { t } = useLanguage();
 
@@ -44,8 +46,9 @@ function AppContent() {
       {/* Main Content */}
       <main className="flex-1 overflow-hidden w-full max-w-md mx-auto relative">
         <div className="absolute inset-0 overflow-y-auto p-4 pb-0">
+          {currentView === 'home' && <HomeView />}
           {currentView === 'learn' && <LearnView />}
-          {currentView === 'quiz' && <QuizView />}
+          {currentView === 'quiz' && <QuizView customQueue={customQuizQueue.length > 0 ? customQuizQueue : undefined} />}
           {currentView === 'builder' && <BuilderView />}
           {currentView === 'settings' && <SettingsView />}
           {currentView === 'music' && <MusicLearnView />}
@@ -55,6 +58,12 @@ function AppContent() {
       {/* Bottom Navigation */}
       <nav className="flex-none bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pb-safe z-20">
         <div className="max-w-md mx-auto flex justify-around items-center h-16">
+          <NavButton
+            active={currentView === 'home'}
+            onClick={() => setCurrentView('home')}
+            icon={<Home size={24} />}
+            label={t('nav.home')}
+          />
           <NavButton
             active={currentView === 'learn'}
             onClick={() => setCurrentView('learn')}

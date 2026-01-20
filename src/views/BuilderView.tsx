@@ -19,10 +19,12 @@ import { ManualEntryForm } from '../components/builder/ManualEntryForm';
 import { CsvEditorModal } from '../components/builder/CsvEditorModal';
 import { EditPhraseModal } from '../components/EditPhraseModal';
 import useLanguage from '../hooks/useLanguage';
+import { useDailyStats } from '../hooks/useDailyStats';
 
 export function BuilderView() {
   const { phraseList, setPhraseList } = usePhraseAppContext();
   const { t } = useLanguage();
+  const { increment } = useDailyStats();
 
   const [activeTab, setActiveTab] = useState<'manual' | 'ai'>('ai'); 
   const [showDeleteInput, setShowDeleteInput] = useState(false);
@@ -45,6 +47,7 @@ export function BuilderView() {
             alert(t('builder.itemAlreadyExists').replace('{{meaning}}', newItem.meaning));
             return prev;
         }
+        increment('addCount', 1);
         return [...prev, newItem];
     });
   };
@@ -58,6 +61,7 @@ export function BuilderView() {
              alert(t('builder.allGeneratedDuplicates'));
              return prev;
           }
+          increment('addCount', uniqueNew.length);
           return [...prev, ...uniqueNew];
       });
       setGeneratedItems(null);
@@ -108,6 +112,7 @@ export function BuilderView() {
            return prev;
          }
          alert(t('builder.successImport').replace('{{count}}', reallyUnique.length.toString()));
+         increment('addCount', reallyUnique.length);
          return [...prev, ...reallyUnique];
       });
     } else {

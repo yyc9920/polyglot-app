@@ -4,7 +4,23 @@
     "quiz": "퀴즈",
     "build": "만들기",
     "settings": "설정",
-    "music": "음악"
+    "music": "음악",
+    "home": "홈"
+  },
+  "home": {
+    "welcomeBack": "환영합니다!",
+    "progressMessage": "{{count}}개의 문구를 마스터했습니다. 계속하세요!",
+    "percentComplete": "{{percent}}% 완료",
+    "totalPhrases": "총 {{count}} 문구",
+    "todaysPicks": "오늘의 추천",
+    "viewAll": "모두 보기",
+    "noPhrases": "아직 학습할 문구가 없습니다!",
+    "createNewList": "새 목록 만들기",
+    "newList": "새 목록",
+    "takeQuiz": "퀴즈 풀기",
+    "dailyMission": "일일 미션",
+    "todaysKeywords": "오늘의 키워드",
+    "todaysSong": "오늘의 노래"
   },
   "app": {
     "title": "Polyglot"
@@ -39,6 +55,8 @@
     "apiKeyStoredLocally": "로컬 저장.",
     "youtubeApiKey": "YouTube API 키",
     "youtubeRequiredForMusic": "음악 검색에 필요.",
+    "geniusApiKey": "Genius API 키",
+    "geniusRequiredForExactLyrics": "Genius 데이터베이스에서 정확한 가사를 가져오려면 필요합니다.",
     "getApiKey": "키 발급",
     "ttsVoice": "TTS 음성",
     "autoDetect": "자동 감지",
