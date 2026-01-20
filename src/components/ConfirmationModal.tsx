@@ -15,7 +15,7 @@ export function ConfirmationModal({ items, onConfirm, onCancel, onUpdate }: Conf
 
   const handleChange = (index: number, field: keyof PhraseItem, value: string) => {
       const newItems = [...items];
-      let updatedValue: any = value;
+      let updatedValue: string | string[] = value;
 
       if (field === 'tags') {
           updatedValue = value.split(',').map(t => t.trim()).filter(Boolean);

@@ -1,10 +1,10 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type Tool, type Schema } from "@google/generative-ai";
 
 export interface GeminiOptions {
   maxTokens?: number;
-  tools?: any[];
+  tools?: Tool[];
   responseMimeType?: string;
-  responseSchema?: any;
+  responseSchema?: Schema;
 }
 
 export const callGemini = async (prompt: string, apiKey: string, options: GeminiOptions = {}) => {
@@ -12,12 +12,20 @@ export const callGemini = async (prompt: string, apiKey: string, options: Gemini
 
   const genAI = new GoogleGenerativeAI(apiKey);
 
-  const generationConfig: any = {};
+  const generationConfig: {
+    maxOutputTokens?: number;
+    responseMimeType?: string;
+    responseSchema?: Schema;
+  } = {};
   if (options.maxTokens) generationConfig.maxOutputTokens = options.maxTokens;
   if (options.responseMimeType) generationConfig.responseMimeType = options.responseMimeType;
   if (options.responseSchema) generationConfig.responseSchema = options.responseSchema;
 
-  const modelParams: any = {
+  const modelParams: {
+    model: string;
+    generationConfig: typeof generationConfig;
+    tools?: Tool[];
+  } = {
     model: "gemini-2.0-flash",
     generationConfig
   };
@@ -32,8 +40,9 @@ export const callGemini = async (prompt: string, apiKey: string, options: Gemini
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();
-  } catch (error: any) {
-    throw new Error(error.message || "Gemini API Error");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Gemini API Error";
+    throw new Error(message);
   }
 };
 
@@ -70,7 +79,7 @@ export const generateSongLyrics = async (artist: string, title: string, apiKey: 
     `;
 
     const searchResult = await callGemini(searchPrompt, apiKey, {
-      tools: [{ googleSearch: {} }]
+      tools: [{ googleSearch: {} }] as Tool[]
     });
 
     console.log("Search completed. Now formatting to JSON...");

@@ -37,6 +37,22 @@ export function QuizView({ customQueue }: QuizViewProps) {
   const [showSummary, setShowSummary] = useState(false);
   
   const [isListening, setIsListening] = useState(false);
+  
+  // Track previous customQueue to handle updates (Derived State)
+  const [prevCustomQueue, setPrevCustomQueue] = useState<QuizItem[] | undefined>(undefined);
+
+  if (customQueue !== prevCustomQueue) {
+    setPrevCustomQueue(customQueue);
+    if (customQueue && customQueue.length > 0) {
+       setQuizQueue(customQueue);
+       setCurrentIndex(0);
+       setInput('');
+       setFeedback('none');
+       setSessionPoints(0);
+       setShowSummary(false);
+       setIsPlaying(true);
+    }
+  }
 
   // Setup States
   const [mode, setMode] = useLocalStorage<'all' | 'incorrect' | 'tag'>('quizMode', 'all');
@@ -54,7 +70,7 @@ export function QuizView({ customQueue }: QuizViewProps) {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [currentIndex, isPlaying, quizQueue, feedback]);
+  }, [currentIndex, isPlaying, quizQueue, feedback, speak]);
 
   const startListening = () => {
     if (!SpeechRecognition) {
@@ -85,17 +101,7 @@ export function QuizView({ customQueue }: QuizViewProps) {
     };
   };
 
-  useEffect(() => {
-    if (customQueue && customQueue.length > 0) {
-        setQuizQueue(customQueue);
-        setCurrentIndex(0);
-        setInput('');
-        setFeedback('none');
-        setSessionPoints(0);
-        setShowSummary(false);
-        setIsPlaying(true);
-    }
-  }, [customQueue]);
+
 
   const startQuiz = () => {
     let list = [...phraseList];

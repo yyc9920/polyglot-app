@@ -84,8 +84,9 @@ Tags: Tags in Native language (e.g. "일상,비즈니스"). If context implies a
       } else {
         alert(t('builder.failedToParse'));
       }
-    } catch (err: any) {
-      alert(t('builder.aiGenerationFailed').replace('{{message}}', err.message));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      alert(t('builder.aiGenerationFailed').replace('{{message}}', message));
     } finally {
       setIsGenerating(false);
     }

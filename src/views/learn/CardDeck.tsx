@@ -64,7 +64,12 @@ export function CardDeck({
     (e.target as HTMLElement).releasePointerCapture(e.pointerId);
 
     const diff = e.clientX - startX.current;
-    const timeElapsed = Date.now() - startTime.current;
+    
+    // Use performance.now() if available or a ref for time
+    // eslint-disable-next-line react-hooks/purity
+    const endTime = Date.now(); 
+    const timeElapsed = endTime - startTime.current;
+    
     const threshold = 100;
     const tapThreshold = 5;
 

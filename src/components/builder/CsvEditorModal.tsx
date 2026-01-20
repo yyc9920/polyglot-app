@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FileText, X, Save } from 'lucide-react';
 import { FunButton } from '../FunButton';
 import { parseCSV, generateId } from '../../lib/utils';
@@ -15,12 +15,15 @@ interface CsvEditorModalProps {
 export function CsvEditorModal({ isOpen, onClose, initialContent, onSave }: CsvEditorModalProps) {
   const { t } = useLanguage();
   const [content, setContent] = useState(initialContent);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
-  useEffect(() => {
-    if (isOpen) {
-      setContent(initialContent);
-    }
-  }, [isOpen, initialContent]);
+  // Reset content when modal opens
+  if (isOpen && !prevIsOpen) {
+    setPrevIsOpen(true);
+    setContent(initialContent);
+  } else if (!isOpen && prevIsOpen) {
+    setPrevIsOpen(false);
+  }
 
   const handleSave = () => {
     const cleanText = content.replace(/^\uFEFF/, '').trim();
@@ -58,7 +61,7 @@ export function CsvEditorModal({ isOpen, onClose, initialContent, onSave }: CsvE
         onSave(newItems);
         onClose();
         alert(`Saved ${newItems.length} items.`);
-    } catch (e) {
+    } catch {
         alert("Error parsing CSV. Please check formatting.");
     }
   };

@@ -9,6 +9,8 @@ import { AiConfigSection } from './settings/AiConfigSection';
 import { TtsVoiceSection } from './settings/TtsVoiceSection';
 import { DataManagementSection } from './settings/DataManagementSection';
 
+import type { LanguageCode } from '../data/phraseDictionary';
+
 export function SettingsView() {
   const { language, changeLanguage, LANGUAGE_NAMES, t } = useLanguage();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -25,7 +27,7 @@ export function SettingsView() {
           <label className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('settings.language')}</label>
           <select
             value={language}
-            onChange={(e) => changeLanguage(e.target.value as any)}
+            onChange={(e) => changeLanguage(e.target.value as LanguageCode)}
             className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           >
             {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (

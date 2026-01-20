@@ -36,11 +36,11 @@ export function LearnView() {
   
   const [editingItem, setEditingItem] = useState<PhraseItem | null>(null);
 
-  const displayListRef = React.useRef(displayList);
-  useEffect(() => { displayListRef.current = displayList; }, [displayList]);
-
+  const prevItemIdRef = React.useRef<string | null>(null);
+  
   const allTags = Array.from(new Set(phraseList.flatMap(v => v.tags)));
 
+  // Effect 1: Handle Filtering and Sorting
   useEffect(() => {
     let list = phraseList;
 
@@ -66,24 +66,34 @@ export function LearnView() {
     }
 
     setDisplayList(list);
+  }, [phraseList, selectedTags, isShuffled, searchTerm, reviewMode, status.incorrectIds]);
 
-    const prevItem = displayListRef.current[currentIndex];
-    
-    if (currentIndex >= list.length) {
+  // Effect 2: Handle Index Validation and State Reset on List Change
+  
+  useEffect(() => {
+    if (displayList.length === 0) return;
+
+    // 1. Validate Index
+    if (currentIndex >= displayList.length) {
       setCurrentIndex(0);
       setIsFlipped(false);
       setAiExplanation('');
       setShowAiModal(false);
-    } else {
-      const newItem = list[currentIndex];
-      if (!prevItem || newItem.id !== prevItem.id) {
-         setIsFlipped(false);
-         setAiExplanation('');
-         setShowAiModal(false);
-      }
+      return;
     }
+
+    // 2. Check if the current item has changed (e.g. filtered out or reordered)
+    const currentItem = displayList[currentIndex];
+    const prevId = prevItemIdRef.current;
     
-  }, [phraseList, selectedTags, isShuffled, searchTerm, reviewMode, status.incorrectIds]);
+    if (prevId && currentItem.id !== prevId) {
+        setIsFlipped(false);
+        setAiExplanation('');
+        setShowAiModal(false);
+    }
+
+    prevItemIdRef.current = currentItem.id;
+  }, [displayList, currentIndex, setCurrentIndex]);
 
   const handleNext = () => {
     window.speechSynthesis.cancel();
@@ -154,8 +164,9 @@ export function LearnView() {
       `;
       const text = await callGemini(prompt, apiKey);
       setAiExplanation(text);
-    } catch (err: any) {
-      setAiExplanation(`Error: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setAiExplanation(`Error: ${message}`);
     } finally {
       setIsLoadingAi(false);
     }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Save } from 'lucide-react';
 import { FunButton } from './FunButton';
 import type { PhraseItem } from '../types';
@@ -12,18 +12,23 @@ interface EditPhraseModalProps {
 
 export function EditPhraseModal({ item, onSave, onCancel }: EditPhraseModalProps) {
   const { t } = useLanguage();
+  
+  // State to track the form values
   const [form, setForm] = useState({ meaning: '', sentence: '', pronunciation: '', tags: '' });
+  
+  // State to track the current item ID for resetting form when item changes
+  const [currentItemId, setCurrentItemId] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
-    if (item) {
-      setForm({
-        meaning: item.meaning,
-        sentence: item.sentence,
-        pronunciation: item.pronunciation || '',
-        tags: item.tags.join(', ')
-      });
-    }
-  }, [item]);
+  // Sync form with item when item changes (Derived State Pattern)
+  if (item && item.id !== currentItemId) {
+    setCurrentItemId(item.id);
+    setForm({
+      meaning: item.meaning,
+      sentence: item.sentence,
+      pronunciation: item.pronunciation || '',
+      tags: item.tags.join(', ')
+    });
+  }
 
   if (!item) return null;
 

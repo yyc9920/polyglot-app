@@ -23,14 +23,12 @@ export function BottomSheet({
   modal = true,
   peekHeight = 80
 }: BottomSheetProps) {
-  const [mounted, setMounted] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   
   // Window height needed for snap calculations
-  const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
+  const [windowHeight, setWindowHeight] = useState(() => typeof window !== 'undefined' ? window.innerHeight : 800);
 
   useEffect(() => {
-    setMounted(true);
     const handleResize = () => setWindowHeight(window.innerHeight);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -173,12 +171,11 @@ export function BottomSheet({
     }
   );
 
-  if (!mounted || typeof document === 'undefined') return null;
+  if (typeof document === 'undefined') return null;
 
   return createPortal(
     <div 
-      className={`fixed inset-0 z-[100] flex flex-col justify-end isolate pointer-events-none`}
-      style={{ display: isOpen ? 'flex' : 'none' }}
+      className={`fixed inset-0 z-[100] flex flex-col justify-end isolate pointer-events-none ${isOpen ? 'flex' : 'hidden'}`}
     >
       {/* Backdrop - Only render if modal */}
       {modal && (
@@ -218,8 +215,7 @@ export function BottomSheet({
 
         {/* Content Wrapper */}
         <div 
-          className="flex-1 flex flex-col relative overflow-hidden bg-white dark:bg-gray-900" 
-          style={{ touchAction: 'pan-y' }}
+          className="flex-1 flex flex-col relative overflow-hidden bg-white dark:bg-gray-900 touch-pan-y" 
         >
           {children}
         </div>

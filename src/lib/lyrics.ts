@@ -32,6 +32,7 @@ export async function searchSongs(query: string): Promise<Song[]> {
     
     if (!data.results) return [];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return data.results.map((item: any) => ({
       id: item.trackId,
       title: item.trackName,

@@ -1,39 +1,11 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode, type Dispatch, type SetStateAction } from 'react';
+import React, { useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { LearningStatus, PhraseItem, ViewMode, QuizItem } from '../types';
 import { SAMPLE_DATA } from '../constants';
 import useCloudStorage from '../hooks/useCloudStorage';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { parseCSV, generateId, detectLanguageFromTags } from '../lib/utils';
 import { PHRASE_DICTIONARY, type LanguageCode } from '../data/phraseDictionary';
-
-interface PhraseAppContextType {
-  phraseList: PhraseItem[];
-  setPhraseList: Dispatch<SetStateAction<PhraseItem[]>>;
-  status: LearningStatus;
-  setStatus: Dispatch<SetStateAction<LearningStatus>>;
-  voiceURI: string | null;
-  setVoiceURI: Dispatch<SetStateAction<string | null>>;
-  apiKey: string;
-  setApiKey: Dispatch<SetStateAction<string>>;
-  lastFmApiKey: string;
-  youtubeApiKey: string;
-  savedUrls: string[];
-  setSavedUrls: Dispatch<SetStateAction<string[]>>;
-  currentView: ViewMode;
-  setCurrentView: Dispatch<SetStateAction<ViewMode>>;
-  reviewMode: boolean;
-  setReviewMode: Dispatch<SetStateAction<boolean>>;
-  purchasedPackages: string[];
-  addStarterPackage: (targetLang: LanguageCode, sourceLang?: LanguageCode) => void;
-  handleReset: () => void;
-  handleDeleteAllData: () => void;
-  syncUrl: (url: string) => Promise<void>;
-  totalCount: number;
-  customQuizQueue: import('../types').QuizItem[];
-  setCustomQuizQueue: Dispatch<SetStateAction<import('../types').QuizItem[]>>;
-}
-
-const PhraseContext = createContext<PhraseAppContextType | undefined>(undefined);
+import { PhraseContext } from './PhraseContextDefinition';
 
 export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Use Cloud Storage for Syncable Data
@@ -81,7 +53,7 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
        setSavedUrls([oldSavedUrl]);
        setOldSavedUrl(''); // Clear old
     }
-  }, []);
+  }, [oldSavedUrl, savedUrls.length, setOldSavedUrl, setSavedUrls]);
 
   const fetchFromUrl = async (url: string): Promise<PhraseItem[]> => {
       try {
@@ -247,6 +219,7 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
   return <PhraseContext.Provider value={value}>{children}</PhraseContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const usePhraseAppContext = () => {
   const context = useContext(PhraseContext);
   if (context === undefined) {

@@ -58,8 +58,9 @@ export function DataManagementSection() {
         if (data.savedUrl && (!data.savedUrls || data.savedUrls.length === 0)) setSavedUrls([data.savedUrl]);
 
         alert(t('settings.loadSuccess'));
-      } catch (err: any) {
-        alert(t('settings.loadFailed').replace('{{error}}', err.message));
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        alert(t('settings.loadFailed').replace('{{error}}', message));
       } finally {
         e.target.value = ''; // reset input
       }
