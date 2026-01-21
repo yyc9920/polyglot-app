@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { LearningStatus, QuizItem, QuizType } from '../types';
-import { checkAnswer } from '../lib/utils';
+import { checkAnswer, detectLanguageFromTags, getBCP47Code } from '../lib/utils';
 import { usePhraseAppContext } from '../context/PhraseContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { triggerConfetti } from '../lib/fun-utils';
@@ -79,7 +79,12 @@ export function QuizView({ customQueue }: QuizViewProps) {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US'; 
+    
+    const currentItem = quizQueue[currentIndex];
+    const itemLang = detectLanguageFromTags(currentItem.tags);
+    const targetLang = itemLang || status.learningLanguage || 'en';
+    
+    recognition.lang = getBCP47Code(targetLang); 
     recognition.start();
     setIsListening(true);
 
@@ -103,7 +108,7 @@ export function QuizView({ customQueue }: QuizViewProps) {
 
 
 
-  const startQuiz = () => {
+  const startQuiz = (skipConfirmation: boolean = false) => {
     let list = [...phraseList];
 
     // 1. Filter by Scope
@@ -125,7 +130,7 @@ export function QuizView({ customQueue }: QuizViewProps) {
 
     if (quizLevel !== 'custom') {
       const levelConfig = LEVELS[quizLevel];
-      if (list.length < levelConfig.total) {
+      if (list.length < levelConfig.total && !skipConfirmation) {
         const msg = t('quiz.confirmNotEnough')
             .replace('{{level}}', quizLevel)
             .replace('{{need}}', levelConfig.total.toString())
@@ -164,6 +169,29 @@ export function QuizView({ customQueue }: QuizViewProps) {
     setSessionPoints(0);
     setShowSummary(false);
     setIsPlaying(true);
+  };
+
+  const handleShowAnswer = () => {
+      if (feedback !== 'none') return;
+      
+      setFeedback('incorrect');
+      setEarnedPoints(0);
+      setIsFlipped(true);
+
+      const currentItem = quizQueue[currentIndex];
+      setStatus((prev: LearningStatus) => {
+        const newIncorrect = [...new Set([...prev.incorrectIds, currentItem.id])];
+        
+        // Update Quiz Stats (Mark as incorrect)
+        const currentStats = prev.quizStats?.[currentItem.id] || { correct: [], incorrect: [] };
+        const newStats = { ...prev.quizStats };
+        newStats[currentItem.id] = {
+            ...currentStats,
+            incorrect: [...new Set([...currentStats.incorrect, currentItem.type as QuizType])]
+        };
+
+        return { ...prev, incorrectIds: newIncorrect, quizStats: newStats };
+      });
   };
 
   const submitAnswer = (e: React.FormEvent) => {
@@ -243,7 +271,7 @@ export function QuizView({ customQueue }: QuizViewProps) {
         setQuizLevel={setQuizLevel}
         quizType={quizType}
         setQuizType={setQuizType}
-        onStartQuiz={startQuiz}
+        onStartQuiz={() => startQuiz(false)}
         tags={tags}
         status={status}
       />
@@ -254,7 +282,7 @@ export function QuizView({ customQueue }: QuizViewProps) {
     return (
       <QuizSummary 
         sessionPoints={sessionPoints}
-        onTryAgain={startQuiz}
+        onTryAgain={() => startQuiz(true)}
         onBackToSetup={() => setIsPlaying(false)}
       />
     );
@@ -277,6 +305,7 @@ export function QuizView({ customQueue }: QuizViewProps) {
       onSpeak={(text) => { speak(text); increment('speakCount'); }}
       isFlipped={isFlipped}
       setIsFlipped={setIsFlipped}
+      onShowAnswer={handleShowAnswer}
     />
   );
 }

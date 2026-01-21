@@ -48,19 +48,23 @@ export const createCloze = (item: PhraseItem): QuizItem => {
 
   } else {
     // Non-space logic (Japanese)
-    const len = sentence.length;
+    const chars = [...sentence];
+    const len = chars.length;
+    
     if (len <= 4) {
       // Very short: mask 50%
       const maskLen = Math.max(1, Math.floor(len / 2));
       const start = Math.floor(Math.random() * (len - maskLen + 1));
-      target = sentence.substring(start, start + maskLen);
-      masked = sentence.substring(0, start) + "______" + sentence.substring(start + maskLen);
+      
+      target = chars.slice(start, start + maskLen).join('');
+      masked = chars.slice(0, start).join('') + "______" + chars.slice(start + maskLen).join('');
     } else {
       // Longer: mask 2-4 chars (simulating a word)
       const maskLen = Math.floor(Math.random() * 3) + 2; // 2, 3, or 4
       const start = Math.floor(Math.random() * (len - maskLen)); // Ensure strictly inside or at bounds
-      target = sentence.substring(start, start + maskLen);
-      masked = sentence.substring(0, start) + "______" + sentence.substring(start + maskLen);
+      
+      target = chars.slice(start, start + maskLen).join('');
+      masked = chars.slice(0, start).join('') + "______" + chars.slice(start + maskLen).join('');
     }
   }
   

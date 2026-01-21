@@ -20,6 +20,7 @@ interface QuizQuestionProps {
   onSpeak: (text: string) => void;
   isFlipped: boolean;
   setIsFlipped: (flipped: boolean) => void;
+  onShowAnswer: () => void;
 }
 
 export function QuizQuestion({
@@ -37,7 +38,8 @@ export function QuizQuestion({
   onExit,
   onSpeak,
   isFlipped,
-  setIsFlipped
+  setIsFlipped,
+  onShowAnswer
 }: QuizQuestionProps) {
   const { t } = useLanguage();
   const currentItem = quizQueue[currentIndex];
@@ -97,7 +99,12 @@ export function QuizQuestion({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={currentItem.type === 'cloze' ? t('quiz.placeholder.cloze') : currentItem.type === 'speaking' ? t('quiz.placeholder.speaking') : t('quiz.placeholder.writing')}
+            placeholder={
+              currentItem.type === 'cloze' ? t('quiz.placeholder.cloze') : 
+              currentItem.type === 'speaking' ? t('quiz.placeholder.speaking') : 
+              currentItem.type === 'listening' ? t('quiz.placeholder.listening') :
+              t('quiz.placeholder.writing')
+            }
             className={`w-full p-4 rounded-xl border-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-lg outline-none transition-colors pr-14
               ${feedback === 'none' ? 'border-gray-200 dark:border-gray-700 focus:border-blue-500' : ''}
               ${feedback === 'correct' ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : ''}
@@ -133,13 +140,26 @@ export function QuizQuestion({
         </div>
 
         {feedback === 'none' ? (
-          <FunButton 
-            type="submit" 
-            fullWidth
-            variant="primary"
-          >
-            {t('quiz.checkAnswer')}
-          </FunButton>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <FunButton 
+                type="submit" 
+                fullWidth
+                variant="primary"
+              >
+                {t('quiz.checkAnswer')}
+              </FunButton>
+            </div>
+            {currentItem.type !== 'speaking' && currentItem.type !== 'listening' && (
+              <button
+                type="button"
+                onClick={onShowAnswer}
+                className="px-4 py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm font-bold"
+              >
+                {t('quiz.showAnswer')}
+              </button>
+            )}
+          </div>
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 space-y-4">
             <div className={`p-4 rounded-xl border-2 flex flex-col gap-4 ${
@@ -155,13 +175,13 @@ export function QuizQuestion({
                 }`}>
                   {feedback === 'correct' ? (
                       <span className="flex items-center gap-1">
-                          ✨ Perfect <span className="text-green-200">+{earnedPoints}pts</span>
+                          {t('quiz.perfect')} <span className="text-green-200">+{earnedPoints}pts</span>
                       </span>
-                  ) : '📚 Learning'}
+                  ) : t('quiz.learning')}
                 </span>
                 {feedback === 'incorrect' && (
                   <span className="text-xs font-bold text-red-500/80 uppercase tracking-wider break-words text-right">
-                    Correct: {currentItem.answerText}
+                    {t('quiz.correctAnswer')}: {currentItem.answerText}
                   </span>
                 )}
               </div>

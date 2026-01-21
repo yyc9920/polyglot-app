@@ -20,6 +20,22 @@ export const detectLanguage = (text: string): string => {
   return 'en';
 };
 
+export const getBCP47Code = (lang: string): string => {
+  const map: Record<string, string> = {
+    'en': 'en-US',
+    'ko': 'ko-KR',
+    'ja': 'ja-JP',
+    'zh': 'zh-CN',
+    'es': 'es-ES',
+    'fr': 'fr-FR',
+    'de': 'de-DE',
+    'it': 'it-IT',
+    'pt': 'pt-BR',
+    'hi': 'hi-IN'
+  };
+  return map[lang] || 'en-US';
+};
+
 export const detectLanguageFromTags = (tags: string[]): string | undefined => {
   const lowerTags = new Set(tags.map(t => t.toLowerCase()));
   

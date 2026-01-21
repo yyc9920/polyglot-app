@@ -219,6 +219,11 @@
     "checkAnswer": "Check Answer",
     "tryAgain": "Try Again",
     "backToSetup": "Back to Setup",
+    "perfect": "✨ Perfect",
+    "learning": "📚 Learning",
+    "correctAnswer": "Correct Answer",
+    "showAnswer": "Show Answer",
+    "iDontKnow": "I don't know",
     "correct": "Correct!",
     "incorrect": "Incorrect",
     "showAnswer": "Show Answer",
@@ -251,6 +256,7 @@
     "placeholder": {
         "cloze": "Type the missing word...",
         "speaking": "Press mic and speak...",
+        "listening": "Type what you hear...",
         "writing": "Type answer..."
     },
     "title": {

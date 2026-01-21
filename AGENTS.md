@@ -13,7 +13,8 @@
 ├── .github/workflows/ # CI/CD (Main + Master)
 ├── src/
 │   ├── components/    # UI (Atomic + Builder sub-feature)
-│   ├── context/       # State (PhraseContext = Core Brain)
+│   │   └── music/     # Music player & Lyrics view
+│   ├── context/       # State (PhraseContext, MusicContext)
 │   ├── hooks/         # Logic (useCloudStorage, useLanguage)
 │   ├── lib/           # Business Logic (AI, Firebase, Utils)
 │   │   └── locales/   # i18n JSON files (Non-standard location)
@@ -25,6 +26,7 @@
 | Task | Location | Notes |
 |------|----------|-------|
 | **Core State** | `src/context/PhraseContext.tsx` | Manages phrases, view routing, and user progress |
+| **Music Logic** | `src/context/MusicContext.tsx` | Manages playlist, video state, and lyrics |
 | **AI Logic** | `src/lib/gemini.ts` | Prompt engineering & structured JSON schemas |
 | **Persistence** | `src/hooks/useCloudStorage.ts` | Syncs LocalStorage ↔ Firebase |
 | **Translations** | `src/lib/locales/` | JSON resources for i18n |
