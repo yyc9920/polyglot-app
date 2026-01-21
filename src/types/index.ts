@@ -55,3 +55,20 @@ export interface PlaylistItem {
 }
 
 export type ViewMode = 'home' | 'learn' | 'quiz' | 'builder' | 'settings' | 'music';
+
+export interface DailyMission {
+  id: string;
+  type: 'review' | 'quiz' | 'speak' | 'add' | 'listen';
+  target: number;
+  text?: string;
+}
+
+export interface DailyRecommendation {
+  date: string;
+  phraseIds: string[];
+  songId: string | null;
+  keywords: string[];
+  missions: DailyMission[];
+  keywordPhraseIds?: Record<string, string[]>;
+  songPhraseIds?: string[];
+}

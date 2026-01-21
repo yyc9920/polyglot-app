@@ -8,27 +8,10 @@ import useLanguage from '../hooks/useLanguage';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { useTTS } from '../hooks/useTTS';
 import { useDailyStats } from '../hooks/useDailyStats';
-import type { PhraseItem, LearningStatus, PlaylistItem } from '../types';
-
-import { createQuizItem } from '../lib/quiz-utils';
+import type { PhraseItem, LearningStatus, PlaylistItem, DailyMission, DailyRecommendation } from '../types';
 
 import { BottomSheet } from '../components/BottomSheet';
 import { HomeSongView } from './home/HomeSongView';
-
-interface DailyMission {
-  id: string;
-  type: 'review' | 'quiz' | 'speak' | 'add' | 'listen';
-  target: number;
-  text?: string;
-}
-
-interface DailyRecommendation {
-  date: string;
-  phraseIds: string[];
-  songId: string | null;
-  keywords: string[];
-  missions: DailyMission[];
-}
 
 const MISSION_POOL: Omit<DailyMission, 'text'>[] = [
   { id: 'review_5', type: 'review', target: 5 },
@@ -102,14 +85,33 @@ export function HomeView() {
     const selectedPhrases = shuffledPhrases.slice(0, 3).map(p => p.id);
 
     let selectedSongId = null;
+    let selectedSongPhrases: string[] = [];
     if (playlist.length > 0) {
         const randomSong = playlist[Math.floor(Math.random() * playlist.length)];
         selectedSongId = randomSong.id;
+        
+        // Select up to 5 random phrases from this song
+        const songVideoId = randomSong.video.videoId;
+        const songPhrases = phraseList.filter(p => p.song?.videoId === songVideoId);
+        selectedSongPhrases = songPhrases
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 5)
+            .map(p => p.id);
     }
 
     const allTags = Array.from(new Set(phraseList.flatMap(p => p.tags)));
     const shuffledTags = allTags.sort(() => 0.5 - Math.random());
     const selectedKeywords = shuffledTags.slice(0, 5);
+    
+    // Select up to 5 random phrases for each keyword
+    const keywordPhraseMap: Record<string, string[]> = {};
+    selectedKeywords.forEach(keyword => {
+        const phrasesForTag = phraseList.filter(p => p.tags.includes(keyword));
+        keywordPhraseMap[keyword] = phrasesForTag
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 5)
+            .map(p => p.id);
+    });
 
     const shuffledMissions = [...MISSION_POOL].sort(() => 0.5 - Math.random());
     const selectedMissions = shuffledMissions.slice(0, 3);
@@ -119,7 +121,9 @@ export function HomeView() {
         phraseIds: selectedPhrases,
         songId: selectedSongId,
         keywords: selectedKeywords,
-        missions: selectedMissions
+        missions: selectedMissions,
+        keywordPhraseIds: keywordPhraseMap,
+        songPhraseIds: selectedSongPhrases
     });
   }, [phraseList, playlist, status.completedIds, setDailyData]);
 
@@ -143,9 +147,17 @@ export function HomeView() {
   }, [dailyData, playlist]);
 
   const keywordPhrases = useMemo(() => {
-    if (!selectedKeyword) return [];
+    if (!selectedKeyword || !dailyData?.keywordPhraseIds) return [];
+    
+    // Use the stored random selection if available
+    const storedIds = dailyData.keywordPhraseIds[selectedKeyword];
+    if (storedIds) {
+        return phraseList.filter(p => storedIds.includes(p.id));
+    }
+    
+    // Fallback to old behavior if data missing (e.g. old data)
     return phraseList.filter(p => p.tags.includes(selectedKeyword)).slice(0, 5);
-  }, [selectedKeyword, phraseList]);
+  }, [selectedKeyword, phraseList, dailyData]);
 
   const progressPercentage = useMemo(() => {
     if (phraseList.length === 0) return 0;
@@ -188,19 +200,11 @@ export function HomeView() {
 
   const handleTakeDailyQuiz = () => {
     if (!dailyData) return;
-    const targetPhraseIds = new Set(dailyData.phraseIds);
-    if (dailyData.keywords) {
-        phraseList.filter(p => p.tags.some(tag => dailyData.keywords.includes(tag)))
-            .forEach(p => targetPhraseIds.add(p.id));
-    }
-    const quizItems = phraseList
-        .filter(p => targetPhraseIds.has(p.id))
-        .map(p => createQuizItem(p, 'random'));
-    if (quizItems.length === 0) {
-        alert(t('learn.noDataToDisplay'));
-        return;
-    }
-    setCustomQuizQueue(quizItems);
+    
+    localStorage.setItem('quizMode', JSON.stringify('daily'));
+    
+    setCustomQuizQueue([]);
+    
     setCurrentView('quiz');
   };
 

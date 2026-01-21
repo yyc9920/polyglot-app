@@ -1,11 +1,11 @@
-import { Brain, Filter, Signal, Type } from 'lucide-react';
+import { Brain, Filter, Signal, Type, Calendar } from 'lucide-react';
 import { FunButton } from '../../components/FunButton';
 import useLanguage from '../../hooks/useLanguage';
 import type { LearningStatus } from '../../types';
 
 interface QuizSetupProps {
-  mode: 'all' | 'incorrect' | 'tag';
-  setMode: (mode: 'all' | 'incorrect' | 'tag') => void;
+  mode: 'all' | 'incorrect' | 'tag' | 'daily';
+  setMode: (mode: 'all' | 'incorrect' | 'tag' | 'daily') => void;
   selectedTag: string;
   setSelectedTag: (tag: string) => void;
   quizLevel: 'custom' | 'basic' | 'advanced' | 'legend';
@@ -54,6 +54,14 @@ export function QuizSetup({
               onClick={() => setMode('all')}
             >
               {t('common.all')}
+            </button>
+            <button 
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${mode === 'daily' ? 'bg-amber-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}
+              onClick={() => setMode('daily')}
+            >
+              <span className="flex items-center justify-center gap-1">
+                 <Calendar size={12} /> Daily
+              </span>
             </button>
             <button 
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${mode === 'incorrect' ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}
