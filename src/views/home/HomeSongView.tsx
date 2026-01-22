@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import YouTube from 'react-youtube';
 import { Music as MusicIcon, ArrowLeft } from 'lucide-react';
@@ -37,6 +37,47 @@ export const HomeSongView = React.memo(function HomeSongView({
     });
 
     const [localPlaylist, setLocalPlaylist] = useState<PlaylistItem[]>([song]);
+    const fetchingRef = useRef<string | null>(null);
+    const [confirmationStep, setConfirmationStep] = useState<'none' | 'confirm' | 'select'>('none');
+
+    const fetchLyrics = async (targetLang: string) => {
+        const video = { ...song.video, artist: song.song.artist };
+        const cacheKey = `song_lyrics_${video.videoId}_${targetLang}`;
+
+        if (!apiKey) return;
+        
+        // Prevent duplicate requests
+        if (fetchingRef.current === cacheKey) return;
+        fetchingRef.current = cacheKey;
+
+        setConfirmationStep('none');
+        setLocalMusicState(prev => ({ ...prev, isLoading: true }));
+        try {
+            const targetLanguageName = LANGUAGE_NAMES[targetLang as keyof typeof LANGUAGE_NAMES] || targetLang;
+            const userLocaleName = LANGUAGE_NAMES[language as keyof typeof LANGUAGE_NAMES] || language;
+            
+            const data = await generateSongLyrics(video.artist, video.title, apiKey, targetLanguageName, userLocaleName);
+            
+            setSongLyrics(prev => ({ ...prev, [cacheKey]: data }));
+            setLocalMusicState(prev => ({ ...prev, materials: data }));
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Unknown error';
+            alert(t('music.failedGenerateMaterials').replace('{{error}}', message));
+            // Fallback: Enable manual entry
+            setLocalMusicState(prev => ({ 
+                ...prev, 
+                materials: { 
+                    artist: video.artist,
+                    title: video.title,
+                    lyrics: [], 
+                    phrases: [] 
+                } 
+            }));
+        } finally {
+            setLocalMusicState(prev => ({ ...prev, isLoading: false }));
+            fetchingRef.current = null;
+        }
+    };
 
     useEffect(() => {
         const loadLyrics = async () => {
@@ -62,21 +103,8 @@ export const HomeSongView = React.memo(function HomeSongView({
                 }
             }
 
-            if (!apiKey) return;
-
-            setLocalMusicState(prev => ({ ...prev, isLoading: true }));
-            try {
-                const targetLanguageName = LANGUAGE_NAMES[language as keyof typeof LANGUAGE_NAMES];
-                const data = await generateSongLyrics(video.artist, video.title, apiKey, targetLanguageName);
-                
-                setSongLyrics(prev => ({ ...prev, [cacheKey]: data }));
-                setLocalMusicState(prev => ({ ...prev, materials: data }));
-            } catch (err: unknown) {
-                const message = err instanceof Error ? err.message : 'Unknown error';
-                alert(t('music.failedGenerateMaterials').replace('{{error}}', message));
-            } finally {
-                setLocalMusicState(prev => ({ ...prev, isLoading: false }));
-            }
+            // No cache -> Prompt user
+            setConfirmationStep('confirm');
         };
 
         loadLyrics();
@@ -153,11 +181,91 @@ export const HomeSongView = React.memo(function HomeSongView({
                     }
                 >
                     <div className="flex flex-col h-full">
-                        <div className="flex-1 overflow-hidden">
+                        <div className="flex-1 overflow-hidden relative">
                             <LyricsView 
                                 onMaterialsUpdate={handleMaterialsUpdate}
                                 contextOverrides={contextValue}
                             />
+                            
+                            {confirmationStep === 'confirm' && (
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl max-w-sm w-full animate-in zoom-in-95 duration-200">
+                                        <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">
+                                            {t('music.confirmLanguage') || "Confirm Language"}
+                                        </h3>
+                                        <p className="text-gray-600 dark:text-gray-300 mb-6">
+                                            {t('music.fetchLyricsIn') || "Fetch lyrics in"} <span className="font-bold text-blue-500">{language.toUpperCase()}</span>?
+                                        </p>
+                                        <div className="flex gap-3">
+                                            <button 
+                                                onClick={() => setConfirmationStep('select')}
+                                                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            >
+                                                {t('common.no') || "No"}
+                                            </button>
+                                            <button 
+                                                onClick={() => fetchLyrics(language)}
+                                                className="flex-1 px-4 py-2 rounded-xl bg-blue-500 text-white font-bold hover:bg-blue-600 shadow-sm"
+                                            >
+                                                {t('common.yes') || "Yes"}
+                                            </button>
+                                        </div>
+                                        <button 
+                                            onClick={() => {
+                                                setConfirmationStep('none');
+                                                // Set empty materials to allow manual entry / viewing without lyrics
+                                                setLocalMusicState(prev => ({ 
+                                                    ...prev, 
+                                                    materials: { 
+                                                        artist: song.song.artist,
+                                                        title: song.song.title,
+                                                        lyrics: [], 
+                                                        phrases: [] 
+                                                    } 
+                                                }));
+                                            }}
+                                            className="mt-4 w-full py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                        >
+                                            {t('common.cancel') || "Cancel"}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {confirmationStep === 'select' && (
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl max-w-sm w-full max-h-[80vh] flex flex-col animate-in zoom-in-95 duration-200">
+                                        <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100 flex-shrink-0">
+                                            {t('music.selectLanguage') || "Select Language"}
+                                        </h3>
+                                        <div className="overflow-y-auto custom-scrollbar flex-1 space-y-2">
+                                            {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
+                                                <button
+                                                    key={code}
+                                                    onClick={() => fetchLyrics(code)}
+                                                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between group"
+                                                >
+                                                    <span className="font-medium">{name}</span>
+                                                    {code === language && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Default</span>}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button 
+                                            onClick={() => {
+                                                setConfirmationStep('none');
+                                                // If canceling from selection, we probably want to go back to empty/manual mode too?
+                                                // Or just go back to confirmation? 
+                                                // "Cancel" in "Select Language" usually means "Go back".
+                                                // Let's make it go back to 'confirm' as before, BUT if the user wants to cancel everything, they use the cancel on the confirm screen.
+                                                setConfirmationStep('confirm');
+                                            }}
+                                            className="mt-4 w-full py-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium"
+                                        >
+                                            {t('common.cancel') || "Cancel"}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </BottomSheet>

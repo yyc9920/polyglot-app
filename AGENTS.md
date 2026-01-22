@@ -54,8 +54,8 @@
 
 ## COMMANDS
 ```bash
-npm run dev      # Start dev server
-npm run test     # Run Vitest in watch mode
-npm run build    # Type-check and build
-npm run lint     # ESLint (Flat Config)
+pnpm dev      # Start dev server
+pnpm test     # Run Vitest in watch mode
+pnpm build    # Type-check and build
+pnpm lint     # ESLint (Flat Config)
 ```

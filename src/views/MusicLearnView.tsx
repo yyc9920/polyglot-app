@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import YouTube from 'react-youtube';
 import { useMusicContext } from '../context/MusicContext';
 import { usePhraseAppContext } from '../context/PhraseContext';
@@ -28,6 +29,13 @@ export function MusicLearnView() {
       selectedVideo, 
       selectedSong,
   } = musicState;
+
+  // Track active fetch to prevent duplicates
+  const loadingRef = useRef<string | null>(null);
+  
+  // New state for confirmation flow
+  const [confirmationStep, setConfirmationStep] = useState<'none' | 'confirm' | 'select'>('none');
+  const [pendingVideo, setPendingVideo] = useState<YouTubeVideo | null>(null);
 
   const updateState = (updates: Partial<typeof musicState>) => {
       setMusicState(prev => ({ ...prev, ...updates }));
@@ -63,11 +71,67 @@ export function MusicLearnView() {
     });
   };
 
+  const fetchLyrics = async (video: YouTubeVideo, targetLang: string) => {
+    if (!apiKey) {
+        alert(t('music.geminiKeyMissing'));
+        return;
+    }
+
+    loadingRef.current = video.videoId;
+    updateState({ isLoading: true });
+    
+    // Reset confirmation state
+    setConfirmationStep('none');
+    setPendingVideo(null);
+
+    try {
+        const targetLanguageName = LANGUAGE_NAMES[targetLang as keyof typeof LANGUAGE_NAMES] || targetLang;
+        const userLocaleName = LANGUAGE_NAMES[language as keyof typeof LANGUAGE_NAMES] || language;
+
+        const data = await generateSongLyrics(video.artist, video.title, apiKey, targetLanguageName, userLocaleName);
+        
+        // Cache using the target language to ensure correct retrieval later
+        const effectiveCacheKey = `song_lyrics_${video.videoId}_${targetLang}`;
+
+        // Save to synced storage
+        setSongLyrics(prev => ({ ...prev, [effectiveCacheKey]: data }));
+        
+        updateState({ materials: data });
+        
+        if (data.lyrics && data.lyrics.length > 0) {
+          const genre = selectedSong?.genre;
+          // Use the fetched lyrics language for playlist item
+          addToPlaylist(video, video.artist, video.title, data.lyrics[0].original, genre);
+        }
+    } catch (err) {
+        const error = err as Error;
+        alert(t('music.failedGenerateMaterials').replace('{{error}}', error.message));
+        
+        // Fallback: Enable manual entry
+        updateState({ 
+            materials: { 
+                artist: video.artist,
+                title: video.title,
+                lyrics: [], 
+                phrases: [] 
+            } 
+        });
+    } finally {
+        updateState({ isLoading: false });
+        if (loadingRef.current === video.videoId) {
+            loadingRef.current = null;
+        }
+    }
+  };
+
   const handleSelectVideo = async (video: YouTubeVideo, forceArtist?: string) => {
+    // Prevent duplicate processing
+    if (loadingRef.current === video.videoId) return;
+
     updateState({ selectedVideo: video, materials: null });
     
+    // Check if lyrics exist in the current language first
     const cacheKey = `song_lyrics_${video.videoId}_${language}`;
-    // Use synced storage instead of raw localStorage
     const cached = songLyrics[cacheKey];
     
     const artist = selectedSong ? selectedSong.artist : (forceArtist || video.artist);
@@ -82,32 +146,9 @@ export function MusicLearnView() {
         return;
     }
 
-    if (!apiKey) {
-        alert(t('music.geminiKeyMissing'));
-        return;
-    }
-
-    updateState({ isLoading: true });
-    try {
-        const targetLanguageName = LANGUAGE_NAMES[language];
-
-        const data = await generateSongLyrics(artist, title, apiKey, targetLanguageName);
-        
-        // Save to synced storage
-        setSongLyrics(prev => ({ ...prev, [cacheKey]: data }));
-        
-        updateState({ materials: data });
-        
-        if (data.lyrics && data.lyrics.length > 0) {
-          const genre = selectedSong?.genre;
-          addToPlaylist(video, artist, title, data.lyrics[0].original, genre);
-        }
-    } catch (err) {
-        const error = err as Error;
-        alert(t('music.failedGenerateMaterials').replace('{{error}}', error.message));
-    } finally {
-        updateState({ isLoading: false });
-    }
+    // No cache -> Start confirmation flow
+    setPendingVideo(video);
+    setConfirmationStep('confirm');
   };
 
   const handleMaterialsUpdate = (newMaterials: SongMaterials) => {
@@ -166,8 +207,83 @@ export function MusicLearnView() {
         }
       >
         <div className="flex flex-col h-full">
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden relative">
                 <LyricsView onMaterialsUpdate={handleMaterialsUpdate} />
+                
+                {/* Confirmation Overlay */}
+                {confirmationStep === 'confirm' && (
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl max-w-sm w-full animate-in zoom-in-95 duration-200">
+                            <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">
+                                {t('music.confirmLanguage') || "Confirm Language"}
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-300 mb-6">
+                                {t('music.fetchLyricsIn') || "Fetch lyrics in"} <span className="font-bold text-blue-500">{language.toUpperCase()}</span>?
+                            </p>
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={() => setConfirmationStep('select')}
+                                    className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
+                                >
+                                    {t('common.no') || "No"}
+                                </button>
+                                <button 
+                                    onClick={() => pendingVideo && fetchLyrics(pendingVideo, language)}
+                                    className="flex-1 px-4 py-2 rounded-xl bg-blue-500 text-white font-bold hover:bg-blue-600 shadow-sm"
+                                >
+                                    {t('common.yes') || "Yes"}
+                                </button>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    setConfirmationStep('none');
+                                    setPendingVideo(null);
+                                    // Set empty materials to allow manual entry / viewing without lyrics
+                                    updateState({ 
+                                        materials: { 
+                                            artist: pendingVideo?.artist || '',
+                                            title: pendingVideo?.title || '',
+                                            lyrics: [], 
+                                            phrases: [] 
+                                        } 
+                                    });
+                                }}
+                                className="mt-4 w-full py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            >
+                                {t('common.cancel') || "Cancel"}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Language Selection Overlay */}
+                {confirmationStep === 'select' && (
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl max-w-sm w-full max-h-[80vh] flex flex-col animate-in zoom-in-95 duration-200">
+                            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100 flex-shrink-0">
+                                {t('music.selectLanguage') || "Select Language"}
+                            </h3>
+                            <div className="overflow-y-auto custom-scrollbar flex-1 space-y-2">
+                                {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
+                                    <button
+                                        key={code}
+                                        onClick={() => pendingVideo && fetchLyrics(pendingVideo, code)}
+                                        className="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between group"
+                                    >
+                                        <span className="font-medium">{name}</span>
+                                        {code === language && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Default</span>}
+                                    </button>
+                                ))}
+                            </div>
+                                <button 
+                                    onClick={() => setConfirmationStep('confirm')}
+                                    className="mt-4 w-full py-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium"
+                                >
+                                    {t('common.cancel') || "Cancel"}
+                                </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
       </BottomSheet>
