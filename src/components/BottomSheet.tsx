@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence, useAnimation, type PanInfo } from 'framer-motion';
+import { motion, AnimatePresence, useAnimation, useDragControls, type PanInfo } from 'framer-motion';
 import { X } from 'lucide-react';
 
 interface BottomSheetProps {
@@ -24,6 +24,8 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
   const controls = useAnimation();
+  const dragControls = useDragControls();
+  const prevIsOpen = useRef(isOpen);
 
   useEffect(() => {
     const handleResize = () => setWindowHeight(window.innerHeight);
@@ -37,11 +39,13 @@ export function BottomSheet({
   const SNAP_CLOSED = windowHeight;
 
   useEffect(() => {
-    if (isOpen) {
+    const wasOpen = prevIsOpen.current;
+    if (isOpen && !wasOpen) {
       controls.start({ y: SNAP_INITIAL });
-    } else {
+    } else if (!isOpen && wasOpen) {
       controls.start({ y: SNAP_CLOSED });
     }
+    prevIsOpen.current = isOpen;
   }, [isOpen, SNAP_INITIAL, SNAP_CLOSED, controls]);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
@@ -88,6 +92,8 @@ export function BottomSheet({
             exit={{ y: SNAP_CLOSED }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             drag="y"
+            dragListener={false}
+            dragControls={dragControls}
             dragConstraints={{ top: 0 }}
             dragElastic={0.2}
             dragMomentum={false}
@@ -96,7 +102,10 @@ export function BottomSheet({
             style={{ height: windowHeight }}
           >
             {/* Handle */}
-            <div className="flex-none flex flex-col items-center pt-3 pb-2 cursor-grab active:cursor-grabbing z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 touch-none">
+            <div 
+              onPointerDown={(e) => dragControls.start(e)}
+              className="flex-none flex flex-col items-center pt-3 pb-2 cursor-grab active:cursor-grabbing z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 touch-none"
+            >
               <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full mb-3" />
               
               <div className="w-full px-6 flex justify-between items-center min-h-[40px]">
