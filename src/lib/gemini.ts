@@ -46,8 +46,8 @@ export const callGemini = async (prompt: string, apiKey: string, options: Gemini
   }
 };
 
-export const generateSongLyrics = async (artist: string, title: string, apiKey: string, locale: string) => {
-  console.log(`Searching lyrics for "${title}" by "${artist}" using Gemini Google Search...`);
+export const generateSongLyrics = async (artist: string, title: string, apiKey: string, targetLanguage: string, locale: string) => {
+  console.log(`Searching lyrics for "${title}" by "${artist}" in ${targetLanguage} using Gemini Google Search...`);
 
   const schema: Schema = {
     type: SchemaType.OBJECT,
@@ -73,6 +73,7 @@ export const generateSongLyrics = async (artist: string, title: string, apiKey: 
   try {
     const searchPrompt = `
     Find the official lyrics for the song "${title}" by "${artist}".
+    IMPORTANT: Ensure the fetched lyrics are in ${targetLanguage}.
     Also find the meaning or translation in ${locale}.
     Identify the music genre of the song.
     Return the lyrics, translation, and genre in a raw text format.
@@ -93,8 +94,9 @@ export const generateSongLyrics = async (artist: string, title: string, apiKey: 
 
     Task:
     Extract the lyrics and their ${locale} translation.
-    If the translation is missing in the raw text, generate it yourself based on the lyrics.
+    The 'original' field MUST be in ${targetLanguage}.
     The 'translated' field MUST be in ${locale}.
+    If the translation is missing in the raw text, generate it yourself based on the lyrics.
     Identify the genre of the song (e.g. Pop, Rock, Hip Hop, Ballad, etc).
 
     Output JSON Schema:
@@ -123,10 +125,14 @@ export const generateSongLyrics = async (artist: string, title: string, apiKey: 
     You are a language tutor. I am learning a language by listening to music.
     Please generate lyrics for song "${title}" by "${artist}".
 
-    IMPORTANT: Search for official lyrics to ensure accuracy. If you cannot find them, be honest and generate general educational lyrics.
+    IMPORTANT: Search for official lyrics to ensure accuracy. 
+    The 'original' field MUST be in ${targetLanguage}.
+    The 'translated' field MUST be in ${locale}.
+    
+    If you cannot find them, be honest and generate general educational lyrics.
 
     Output MUST be valid JSON conforming to the schema.
-    Provide the full lyrics. The 'translated' field MUST be in ${locale}.
+    Provide the full lyrics. 
     Identify the genre of the song.
     `;
 

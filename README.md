@@ -91,10 +91,10 @@ The app uses a central Context to manage the list of words and user interactions
 git clone https://github.com/your-username/polyglot-app.git
 
 # 2. Install dependencies
-npm install
+pnpm install
 
 # 3. Start the development server
-npm run-script dev
+pnpm dev
 ```
 
 *Built with ❤️ by Kendrick Yun.*
