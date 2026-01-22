@@ -6,7 +6,8 @@ import { BottomSheet } from '../../components/BottomSheet';
 import { LyricsView } from '../../components/music/LyricsView';
 import { generateSongLyrics } from '../../lib/gemini';
 import { initialMusicState, type MusicViewState } from '../../context/MusicContextDefinition';
-import type { PlaylistItem } from '../../types';
+import { useMusicContext } from '../../context/MusicContext';
+import type { PlaylistItem, SongMaterials } from '../../types';
 
 interface HomeSongViewProps {
   song: PlaylistItem;
@@ -25,6 +26,8 @@ export const HomeSongView = React.memo(function HomeSongView({
     LANGUAGE_NAMES,
     t
 }: HomeSongViewProps) {
+    const { songLyrics, setSongLyrics } = useMusicContext();
+
     const [localMusicState, setLocalMusicState] = useState<MusicViewState>({
         ...initialMusicState,
         selectedVideo: { 
@@ -39,12 +42,20 @@ export const HomeSongView = React.memo(function HomeSongView({
         const loadLyrics = async () => {
             const video = { ...song.video, artist: song.song.artist };
             const cacheKey = `song_lyrics_${video.videoId}_${language}`;
-            const cached = localStorage.getItem(cacheKey);
+            
+            const cachedMaterials = songLyrics[cacheKey];
 
-            if (cached) {
+            if (cachedMaterials) {
+                setLocalMusicState(prev => ({ ...prev, materials: cachedMaterials }));
+                return;
+            }
+
+            const rawCached = localStorage.getItem(cacheKey);
+            if (rawCached) {
                 try {
-                    const parsedMaterials = JSON.parse(cached);
-                    setLocalMusicState(prev => ({ ...prev, materials: parsedMaterials }));
+                    const parsed = JSON.parse(rawCached);
+                    setSongLyrics(prev => ({ ...prev, [cacheKey]: parsed }));
+                    setLocalMusicState(prev => ({ ...prev, materials: parsed }));
                     return;
                 } catch {
                     localStorage.removeItem(cacheKey);
@@ -57,7 +68,8 @@ export const HomeSongView = React.memo(function HomeSongView({
             try {
                 const targetLanguageName = LANGUAGE_NAMES[language as keyof typeof LANGUAGE_NAMES];
                 const data = await generateSongLyrics(video.artist, video.title, apiKey, targetLanguageName);
-                localStorage.setItem(cacheKey, JSON.stringify(data));
+                
+                setSongLyrics(prev => ({ ...prev, [cacheKey]: data }));
                 setLocalMusicState(prev => ({ ...prev, materials: data }));
             } catch (err: unknown) {
                 const message = err instanceof Error ? err.message : 'Unknown error';
@@ -68,16 +80,23 @@ export const HomeSongView = React.memo(function HomeSongView({
         };
 
         loadLyrics();
-    }, [song, apiKey, language, LANGUAGE_NAMES, t]);
+    }, [song, apiKey, language, LANGUAGE_NAMES, t, songLyrics, setSongLyrics]);
+
+    const handleMaterialsUpdate = (newMaterials: SongMaterials) => {
+        setLocalMusicState(prev => ({ ...prev, materials: newMaterials }));
+        
+        const cacheKey = `song_lyrics_${song.video.videoId}_${language}`;
+        setSongLyrics(prev => ({ ...prev, [cacheKey]: newMaterials }));
+    };
 
     const contextValue = useMemo(() => ({
         musicState: localMusicState,
         setMusicState: setLocalMusicState,
         playlist: localPlaylist,
         setPlaylist: setLocalPlaylist,
-        songLyrics: {}, // Not used in this limited view
-        setSongLyrics: () => {} // No-op
-    }), [localMusicState, localPlaylist]);
+        songLyrics: songLyrics,
+        setSongLyrics: setSongLyrics
+    }), [localMusicState, localPlaylist, songLyrics, setSongLyrics]);
 
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     useEffect(() => {
@@ -136,7 +155,7 @@ export const HomeSongView = React.memo(function HomeSongView({
                     <div className="flex flex-col h-full">
                         <div className="flex-1 overflow-hidden">
                             <LyricsView 
-                                onMaterialsUpdate={(m) => setLocalMusicState(prev => ({ ...prev, materials: m }))}
+                                onMaterialsUpdate={handleMaterialsUpdate}
                                 contextOverrides={contextValue}
                             />
                         </div>
