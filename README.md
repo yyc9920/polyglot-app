@@ -2,7 +2,7 @@
 
 > **Learn smarter, not harder.** Polyglot generates custom sentence lists based on your specific interests using Google's Gemini AI.
 
-*(Replace this image with a screenshot of your app's dashboard)*
+
 
 ## 📋 Project Overview
 
@@ -74,21 +74,23 @@ The project follows a clean, feature-based architecture:
 src/
 ├── components/   # Reusable UI components (Modals, Buttons)
 ├── context/      # Global state (PhraseContext, MusicContext)
-├── hooks/        # Custom hooks (useLocalStorage, useTheme)
+├── hooks/        # Custom hooks (useCloudStorage, useTheme)
 ├── lib/          # AI logic and utilities
+├── data/         # Starter phrase dictionaries
+├── constants/    # App constants and configuration
 ├── views/        # Main page layouts (Builder, Learn, Quiz)
 └── types/        # TypeScript interfaces
 ```
 
 ### State Management (`src/context/PhraseContext.tsx`)
 
-The app uses a central Context to manage the list of words and user interactions. Data persistence is handled via a custom `useLocalStorage` hook, ensuring data survives page reloads without a backend database.
+The app uses a central Context to manage the list of words and user interactions. Data persistence uses an offline-first strategy: `useCloudStorage` hook syncs LocalStorage with Firebase for cross-device access while maintaining offline functionality.
 
 ### Installation & Run
 
 ```
 # 1. Clone the repository
-git clone https://github.com/your-username/polyglot-app.git
+git clone https://github.com/yyc9920/polyglot-app.git
 
 # 2. Install dependencies
 pnpm install

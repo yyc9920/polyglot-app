@@ -17,8 +17,10 @@
 │   ├── context/       # State (PhraseContext, MusicContext)
 │   ├── hooks/         # Logic (useCloudStorage, useLanguage)
 │   ├── lib/           # Business Logic (AI, Firebase, Utils)
-│   │   └── locales/   # i18n JSON files (Non-standard location)
+│   ├── data/          # Starter phrase dictionaries (greetings, travel, etc.)
+│   ├── constants/     # App constants and configuration
 │   └── views/         # Page components (Routed via State, not Router)
+├── public/locales/    # i18n JSON files
 └── vite.config.ts     # Build & Test Config
 ```
 
@@ -28,15 +30,15 @@
 | **Core State** | `src/context/PhraseContext.tsx` | Manages phrases, view routing, and user progress |
 | **Music Logic** | `src/context/MusicContext.tsx` | Manages playlist, video state, and lyrics |
 | **AI Logic** | `src/lib/gemini.ts` | Prompt engineering & structured JSON schemas |
-| **Persistence** | `src/hooks/useCloudStorage.ts` | Syncs LocalStorage ↔ Firebase |
-| **Translations** | `src/lib/locales/` | JSON resources for i18n |
-| **Routing** | `src/App.tsx` | Conditional rendering based on `currentView` |
+| **Persistence** | `src/hooks/useCloudStorage.ts` | Syncs IndexedDB (idb-keyval) ↔ Firebase |
+| **Translations** | `public/locales/` | JSON resources for i18n |
+| **Routing** | `src/App.tsx` | Lazy loaded views via Suspense + `currentView` state |
 
 ## CODE MAP
 | Symbol | Type | Location | Role |
 |--------|------|----------|------|
 | `PhraseContext` | Context | `src/context/PhraseContext.tsx` | Global state container |
-| `useCloudStorage`| Hook | `src/hooks/useCloudStorage.ts` | Data sync strategy |
+| `useCloudStorage`| Hook | `src/hooks/useCloudStorage.ts` | Data sync (IndexedDB + Firebase) |
 | `generatePhrase` | Function | `src/lib/gemini.ts` | Primary AI generation entry |
 | `App` | Component | `src/App.tsx` | Layout shell & View router |
 
@@ -45,10 +47,12 @@
 - **Styling**: Tailwind utility classes. `max-w-md` + `fixed inset-0` used for mobile-app feel.
 - **Testing**: Colocated `*.test.tsx` files. Use `vitest`.
 - **State**: Prefer Context for global data; Local state for UI ephemera.
+- **Performance**: Views are lazy-loaded (`React.lazy`). i18n resources fetched via HTTP (`i18next-http-backend`).
+- **Storage**: Client persistence uses `idb-keyval` (IndexedDB). Avoid synchronous `localStorage`.
 
 ## ANTI-PATTERNS (THIS PROJECT)
 - **AI Small Talk**: AI prompts MUST explicitly forbid greetings/chatter. Strict JSON only.
-- **Bypassing LocalStorage**: NEVER write to Cloud without updating LocalStorage cache.
+- **Bypassing Client Storage**: NEVER write to Cloud without updating IndexedDB cache.
 - **CSS-in-JS**: Avoid. Use Tailwind or `index.css`.
 - **Hardcoded Strings**: Use `t()` hook for all UI text.
 
