@@ -178,18 +178,14 @@ export const PhraseAppProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, [savedUrls, mergePhraseList]); // Removed setPhraseList from deps to prevent loops with cloud storage
 
   const handleReset = () => {
-    if (confirm('모든 학습 기록을 초기화하시겠습니까?')) {
-      setStatus({ completedIds: [], incorrectIds: [], points: 0, quizStats: {} });
-    }
+    setStatus({ completedIds: [], incorrectIds: [], points: 0, quizStats: {} });
   };
 
   const handleDeleteAllData = () => {
-    if (confirm('모든 데이터를 삭제하시겠습니까? (복구 불가)')) {
-      setPhraseList([]);
-      setStatus({ completedIds: [], incorrectIds: [], points: 0, quizStats: {} });
-      setSavedUrls([]);
-      setPurchasedPackages([]);
-    }
+    setPhraseList([]);
+    setStatus({ completedIds: [], incorrectIds: [], points: 0, quizStats: {} });
+    setSavedUrls([]);
+    setPurchasedPackages([]);
   };
 
   if (!isPhraseListReady) {

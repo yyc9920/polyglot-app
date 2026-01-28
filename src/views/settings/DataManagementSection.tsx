@@ -1,11 +1,13 @@
 import { useRef } from 'react';
 import { Database, Save, Upload, RefreshCw, Trash2 } from 'lucide-react';
 import { usePhraseAppContext } from '../../context/PhraseContext';
+import { useDialog } from '../../context/DialogContext';
 import { FunButton } from '../../components/FunButton';
 import useLanguage from '../../hooks/useLanguage';
 
 export function DataManagementSection() {
   const { phraseList, status, voiceURI, apiKey, savedUrls, setPhraseList, setStatus, setVoiceURI, setApiKey, setSavedUrls, handleReset, handleDeleteAllData } = usePhraseAppContext();
+  const { confirm } = useDialog();
   const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,12 +32,20 @@ export function DataManagementSection() {
     URL.revokeObjectURL(url);
   };
 
-  const handleLoadData = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLoadData = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!confirm(t('settings.overwriteConfirm'))) {
-      e.target.value = ''; // reset input
+    const confirmed = await confirm({
+      title: t('settings.loadBackup'),
+      message: t('settings.overwriteConfirm'),
+      confirmText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      variant: 'danger',
+    });
+    
+    if (!confirmed) {
+      e.target.value = '';
       return;
     }
 
@@ -45,7 +55,6 @@ export function DataManagementSection() {
         const text = evt.target?.result as string;
         const data = JSON.parse(text);
         
-        // Basic validation - check for phraseList OR vocabList (migration)
         const list = data.phraseList || data.vocabList;
         if (!list || !Array.isArray(list)) throw new Error(t('settings.invalidFormat'));
 
@@ -54,7 +63,6 @@ export function DataManagementSection() {
         if (data.voiceURI) setVoiceURI(data.voiceURI);
         if (data.apiKey) setApiKey(data.apiKey);
         if (data.savedUrls) setSavedUrls(data.savedUrls);
-        // Backward compatibility
         if (data.savedUrl && (!data.savedUrls || data.savedUrls.length === 0)) setSavedUrls([data.savedUrl]);
 
         alert(t('settings.loadSuccess'));
@@ -62,7 +70,7 @@ export function DataManagementSection() {
         const message = err instanceof Error ? err.message : 'Unknown error';
         alert(t('settings.loadFailed').replace('{{error}}', message));
       } finally {
-        e.target.value = ''; // reset input
+        e.target.value = '';
       }
     };
     reader.readAsText(file);
@@ -96,7 +104,15 @@ export function DataManagementSection() {
         <div className="h-[1px] bg-gray-100 dark:bg-gray-700 my-2"></div>
 
         <FunButton 
-          onClick={handleReset} 
+          onClick={async () => {
+            const confirmed = await confirm({
+              title: t('settings.resetProgress'),
+              message: t('settings.resetConfirm'),
+              confirmText: t('common.confirm'),
+              cancelText: t('common.cancel'),
+            });
+            if (confirmed) handleReset();
+          }} 
           fullWidth
           variant="neutral"
           className="flex items-center justify-center gap-2"
@@ -104,7 +120,16 @@ export function DataManagementSection() {
           <RefreshCw size={18} /> {t('settings.resetProgress')}
         </FunButton>
         <FunButton 
-          onClick={handleDeleteAllData} 
+          onClick={async () => {
+            const confirmed = await confirm({
+              title: t('settings.deleteAllData'),
+              message: t('settings.deleteAllConfirm'),
+              confirmText: t('common.delete'),
+              cancelText: t('common.cancel'),
+              variant: 'danger',
+            });
+            if (confirmed) handleDeleteAllData();
+          }} 
           fullWidth
           variant="danger"
           className="flex items-center justify-center gap-2 border-red-200"

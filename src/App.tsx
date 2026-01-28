@@ -16,6 +16,7 @@ import { PhraseAppProvider, usePhraseAppContext } from './context/PhraseContext'
 import { AuthProvider } from './context/AuthContext';
 import { MusicProvider } from './context/MusicContext';
 import { MigrationProvider } from './context/MigrationContext';
+import { DialogProvider } from './context/DialogContext';
 import useLanguage from './hooks/useLanguage';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
@@ -111,13 +112,15 @@ function AppContent() {
 export default function App() {
   return (
     <MigrationProvider>
-      <AuthProvider>
-        <PhraseAppProvider>
-          <MusicProvider>
-            <AppContent />
-          </MusicProvider>
-        </PhraseAppProvider>
-      </AuthProvider>
+      <DialogProvider>
+        <AuthProvider>
+          <PhraseAppProvider>
+            <MusicProvider>
+              <AppContent />
+            </MusicProvider>
+          </PhraseAppProvider>
+        </AuthProvider>
+      </DialogProvider>
     </MigrationProvider>
   );
 }
