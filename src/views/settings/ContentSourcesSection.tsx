@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link as LinkIcon, HelpCircle, RefreshCw, Trash2, Plus, X } from 'lucide-react';
 import { usePhraseAppContext } from '../../context/PhraseContext';
+import { useDialog } from '../../context/DialogContext';
 import { FunButton } from '../../components/FunButton';
 import useLanguage from '../../hooks/useLanguage';
 
 export function ContentSourcesSection() {
   const { savedUrls, setSavedUrls, syncUrl } = usePhraseAppContext();
   const { t } = useLanguage();
+  const { confirm } = useDialog();
   
   const [newUrl, setNewUrl] = useState('');
   const [isSyncing, setIsSyncing] = useState<string | null>(null);
@@ -23,8 +25,13 @@ export function ContentSourcesSection() {
     setNewUrl('');
   };
 
-  const handleRemoveUrl = (url: string) => {
-    if (confirm(t('settings.removeUrl'))) {
+  const handleRemoveUrl = async (url: string) => {
+    const confirmed = await confirm({
+      title: t('common.confirm'),
+      message: t('settings.removeUrl'),
+      variant: 'danger'
+    });
+    if (confirmed) {
       setSavedUrls(savedUrls.filter(u => u !== url));
     }
   };

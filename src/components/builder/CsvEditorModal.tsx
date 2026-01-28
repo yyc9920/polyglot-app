@@ -5,6 +5,7 @@ import { parseCSV, generateId } from '../../lib/utils';
 import type { PhraseEntity } from '../../types/schema';
 import { createPhraseEntity } from '../../types/schema';
 import useLanguage from '../../hooks/useLanguage';
+import { useDialog } from '../../context/DialogContext';
 
 interface CsvEditorModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface CsvEditorModalProps {
 
 export function CsvEditorModal({ isOpen, onClose, initialContent, onSave }: CsvEditorModalProps) {
   const { t } = useLanguage();
+  const { confirm } = useDialog();
   const [content, setContent] = useState(initialContent);
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
@@ -26,10 +28,15 @@ export function CsvEditorModal({ isOpen, onClose, initialContent, onSave }: CsvE
     setPrevIsOpen(false);
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const cleanText = content.replace(/^\uFEFF/, '').trim();
     if (!cleanText) {
-        if(confirm("Content is empty. This will clear your list. Continue?")) {
+        const confirmed = await confirm({
+          title: t('common.confirm'),
+          message: t('builder.emptyContentConfirm'),
+          variant: 'danger'
+        });
+        if(confirmed) {
             onSave([]);
             onClose();
         }
@@ -55,8 +62,15 @@ export function CsvEditorModal({ isOpen, onClose, initialContent, onSave }: CsvE
            ));
         }
         
-        if (newItems.length === 0 && !confirm("No valid items found. Clear list?")) {
-            return;
+        if (newItems.length === 0) {
+            const confirmed = await confirm({
+              title: t('common.confirm'),
+              message: t('builder.noValidItemsConfirm'),
+              variant: 'danger'
+            });
+            if (!confirmed) {
+                return;
+            }
         }
 
         onSave(newItems);

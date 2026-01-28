@@ -164,11 +164,13 @@
     "pronunciationLabel": "발음",
     "tagsLabel": "태그",
     "tagsPlaceholder": "쉼표로 구분",
-    "editCsvContent": "CSV 내용 편집",
-    "reviewAndEdit": "추가하기 전에 검토 및 편집하세요.",
-    "confirmGeneration": "생성 확인",
-    "confirmAndAdd": "확인 및 추가"
-  },
+     "editCsvContent": "CSV 내용 편집",
+     "reviewAndEdit": "추가하기 전에 검토 및 편집하세요.",
+     "confirmGeneration": "생성 확인",
+     "confirmAndAdd": "확인 및 추가",
+     "emptyContentConfirm": "내용이 비어있습니다. 목록이 지워집니다. 계속하시겠습니까?",
+     "noValidItemsConfirm": "유효한 항목이 없습니다. 목록을 지우시겠습니까?"
+   },
   "music": {
     "searchPlaceholder": "노래 또는 아티스트 검색...",
     "search": "검색",

@@ -13,6 +13,7 @@ import type { PhraseEntity } from '../types/schema';
 import { createPhraseEntity } from '../types/schema';
 import { generateId, parseCSV } from '../lib/utils';
 import { usePhraseAppContext } from '../context/PhraseContext';
+import { useDialog } from '../context/DialogContext';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { FunButton } from '../components/FunButton';
 import { AiGeneratorForm } from '../components/builder/AiGeneratorForm';
@@ -26,6 +27,7 @@ export function BuilderView() {
   const { phraseList, setPhraseList } = usePhraseAppContext();
   const { t } = useLanguage();
   const { increment } = useDailyStats();
+  const { confirm } = useDialog();
 
   const [activeTab, setActiveTab] = useState<'manual' | 'ai'>('ai'); 
   const [showDeleteInput, setShowDeleteInput] = useState(false);
@@ -159,32 +161,37 @@ export function BuilderView() {
     link.click();
   };
 
-  const executeTagDeletion = (e: React.FormEvent) => {
-    e.preventDefault();
-    const tagsToDelete = deleteTagsInput.split(',').map(t => t.trim()).filter(Boolean);
-    
-    if (tagsToDelete.length === 0) {
-      alert(t('builder.pleaseEnterLeastOneTag'));
-      return;
-    }
+   const executeTagDeletion = async (e: React.FormEvent) => {
+     e.preventDefault();
+     const tagsToDelete = deleteTagsInput.split(',').map(t => t.trim()).filter(Boolean);
+     
+     if (tagsToDelete.length === 0) {
+       alert(t('builder.pleaseEnterLeastOneTag'));
+       return;
+     }
 
-     if (confirm(t('builder.deleteConfirmMessage').replace('{{tags}}', tagsToDelete.join(', ')))) {
-       setPhraseList((prev: PhraseEntity[]) => {
-        const initialLength = prev.length;
-        const filtered = prev.filter(item => !item.tags.some(tag => tagsToDelete.includes(tag)));
-        
-        if (filtered.length === initialLength) {
-            alert(t('builder.noItemsFoundWithTags').replace('{{tags}}', tagsToDelete.join(', ')));
-            return prev;
-        }
-        
-        alert(t('builder.deletedItemsCount').replace('{{count}}', (initialLength - filtered.length).toString()));
-        setShowDeleteInput(false);
-        setDeleteTagsInput('');
-        return filtered;
+      const confirmed = await confirm({
+        title: t('common.confirm'),
+        message: t('builder.deleteConfirmMessage').replace('{{tags}}', tagsToDelete.join(', ')),
+        variant: 'danger'
       });
-    }
-  };
+      if (confirmed) {
+        setPhraseList((prev: PhraseEntity[]) => {
+         const initialLength = prev.length;
+         const filtered = prev.filter(item => !item.tags.some(tag => tagsToDelete.includes(tag)));
+         
+         if (filtered.length === initialLength) {
+             alert(t('builder.noItemsFoundWithTags').replace('{{tags}}', tagsToDelete.join(', ')));
+             return prev;
+         }
+         
+         alert(t('builder.deletedItemsCount').replace('{{count}}', (initialLength - filtered.length).toString()));
+         setShowDeleteInput(false);
+         setDeleteTagsInput('');
+         return filtered;
+       });
+     }
+   };
 
   return (
     <div className="h-full flex flex-col gap-6 relative">

@@ -184,7 +184,9 @@
     "editCsvContent": "Edit CSV Content",
     "reviewAndEdit": "Review and edit before adding.",
     "confirmGeneration": "Confirm Generation",
-    "confirmAndAdd": "Confirm & Add"
+    "confirmAndAdd": "Confirm & Add",
+    "emptyContentConfirm": "Content is empty. This will clear your list. Continue?",
+    "noValidItemsConfirm": "No valid items found. Clear list?"
   },
   "music": {
     "searchPlaceholder": "Search song or artist...",

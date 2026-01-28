@@ -1,5 +1,6 @@
 import { ListMusic, Trash2 } from 'lucide-react';
 import { useMusicContext } from '../../context/MusicContext';
+import { useDialog } from '../../context/DialogContext';
 import type { YouTubeVideo } from '../../lib/youtube';
 import useLanguage from '../../hooks/useLanguage';
 import type { PlaylistItem } from '../../types';
@@ -11,6 +12,7 @@ interface PlaylistPanelProps {
 export function PlaylistPanel({ onSelect }: PlaylistPanelProps) {
   const { playlist, setPlaylist } = useMusicContext();
   const { t } = useLanguage();
+  const { confirm } = useDialog();
 
   if (playlist.length === 0) {
     return (
@@ -75,19 +77,24 @@ export function PlaylistPanel({ onSelect }: PlaylistPanelProps) {
                 </button>
             </div>
           </div>
-          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button 
-                onClick={(e) => {
-                    e.stopPropagation();
-                    if(confirm(t('music.removeFromPlaylist'))) {
-                        setPlaylist((prev: PlaylistItem[]) => prev.filter(p => p.id !== item.id));
-                    }
-                }}
-                className="p-2 text-gray-400 hover:text-red-500"
-            >
-                <Trash2 size={16} />
-            </button>
-          </div>
+           <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+             <button 
+                 onClick={async (e) => {
+                     e.stopPropagation();
+                     const confirmed = await confirm({
+                       title: t('common.confirm'),
+                       message: t('music.removeFromPlaylist'),
+                       variant: 'danger'
+                     });
+                     if(confirmed) {
+                         setPlaylist((prev: PlaylistItem[]) => prev.filter(p => p.id !== item.id));
+                     }
+                 }}
+                 className="p-2 text-gray-400 hover:text-red-500"
+             >
+                 <Trash2 size={16} />
+             </button>
+           </div>
         </div>
       ))}
     </div>

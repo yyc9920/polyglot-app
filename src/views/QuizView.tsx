@@ -3,6 +3,7 @@ import type { LearningStatus, QuizItem, QuizType } from '../types';
 import { checkAnswer, detectLanguageFromTags, getBCP47Code } from '../lib/utils';
 import { usePhraseAppContext } from '../context/PhraseContext';
 import { useMusicContext } from '../context/MusicContext';
+import { useDialog } from '../context/DialogContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { triggerConfetti } from '../lib/fun-utils';
 import useLanguage from '../hooks/useLanguage';
@@ -28,6 +29,7 @@ export function QuizView({ customQueue }: QuizViewProps) {
   const { t } = useLanguage();
   const { speak } = useTTS();
   const { increment } = useDailyStats();
+  const { confirm } = useDialog();
 
   const [isFlipped, setIsFlipped] = useState(false);
   const [isPlaying, setIsPlaying] = useLocalStorage<boolean>('quizIsPlaying', false);
@@ -111,7 +113,7 @@ export function QuizView({ customQueue }: QuizViewProps) {
 
 
 
-  const startQuiz = (skipConfirmation: boolean = false) => {
+   const startQuiz = async (skipConfirmation: boolean = false) => {
     let list = [...phraseList];
 
     // 1. Filter by Scope
@@ -196,15 +198,19 @@ export function QuizView({ customQueue }: QuizViewProps) {
         queue = list.map(item => createQuizItem(item, 'random'));
     } else if (quizLevel !== 'custom') {
       const levelConfig = LEVELS[quizLevel];
-      if (list.length < levelConfig.total && !skipConfirmation) {
-        const msg = t('quiz.confirmNotEnough')
-            .replace('{{level}}', quizLevel)
-            .replace('{{need}}', levelConfig.total.toString())
-            .replace('{{have}}', list.length.toString());
-        if (!confirm(msg)) {
-          return;
-        }
-      }
+       if (list.length < levelConfig.total && !skipConfirmation) {
+         const msg = t('quiz.confirmNotEnough')
+             .replace('{{level}}', quizLevel)
+             .replace('{{need}}', levelConfig.total.toString())
+             .replace('{{have}}', list.length.toString());
+         const confirmed = await confirm({
+           title: t('common.confirm'),
+           message: msg
+         });
+         if (!confirmed) {
+           return;
+         }
+       }
 
       // Limit list size if we have enough, otherwise use all
       const countToUse = Math.min(list.length, levelConfig.total);
