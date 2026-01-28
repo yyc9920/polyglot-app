@@ -1,11 +1,6 @@
 import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { app } from '../lib/firebase';
-import { get, set } from 'idb-keyval';
-import { addToRetryQueue } from '../lib/sync';
-
-const db = getFirestore(app);
+import { StorageService } from '../lib/services/StorageService';
 
 function useCloudStorage<T>(
   key: string,
@@ -17,39 +12,20 @@ function useCloudStorage<T>(
   const lastCloudStr = useRef<string>('');
   const [isInitialized, setIsInitialized] = useState(false);
   
-  // 1. Initialize state with default value (cannot read IDB synchronously)
+  // 1. Initialize state with default value
   const [storedValue, setStoredValue] = useState<T>(() => {
     return typeof initialValue === 'function' ? (initialValue as () => T)() : initialValue;
   });
 
-  // 2. Load from IDB
+  // 2. Load from Storage
   useEffect(() => {
     let mounted = true;
 
     const loadFromStorage = async () => {
         try {
-            const lsItem = localStorage.getItem(key);
-            if (lsItem) {
-                try {
-                    const parsed = JSON.parse(lsItem);
-                    await set(key, parsed);
-                    localStorage.removeItem(key);
-                    
-                    if (mounted) {
-                        setStoredValue(transform ? transform(parsed) : parsed);
-                        setIsInitialized(true);
-                    }
-                    return;
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-
-            const val = await get<T>(key);
-            if (val !== undefined) {
-                if (mounted) {
-                    setStoredValue(transform ? transform(val) : val);
-                }
+            const val = await StorageService.readLocal<T>(key);
+            if (val !== undefined && mounted) {
+                setStoredValue(transform ? transform(val) : val);
             }
         } catch (error) {
             console.error(error);
@@ -66,51 +42,44 @@ function useCloudStorage<T>(
 
   // 3. Sync to/from Cloud Firestore
   useEffect(() => {
-    if (!user) {
-        return;
-    }
+    if (!user) return;
 
-    const docRef = doc(db, 'users', user.uid, 'data', key);
+    const onData = (cloudValue: T) => {
+         lastCloudStr.current = JSON.stringify(cloudValue);
 
-    // Initial Fetch (Pull from Cloud) & Realtime Listener
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data && data.value !== undefined) {
-                 const cloudValue = data.value;
-                 
-                 lastCloudStr.current = JSON.stringify(cloudValue);
+         setStoredValue(prev => {
+             let newValue = cloudValue;
 
-                 setStoredValue(prev => {
-                     let newValue = cloudValue;
+             if (mergeStrategy) {
+                 newValue = mergeStrategy(prev, cloudValue);
+             }
 
-                     if (mergeStrategy) {
-                         newValue = mergeStrategy(prev, cloudValue);
-                     }
+             newValue = transform ? transform(newValue) : newValue;
 
-                     newValue = transform ? transform(newValue) : newValue;
+             if (JSON.stringify(prev) !== JSON.stringify(newValue)) {
+                 return newValue;
+             }
+             return prev;
+         });
+    };
 
-                     // Only update if different to avoid loops/re-renders
-                     if (JSON.stringify(prev) !== JSON.stringify(newValue)) {
-                         return newValue;
-                     }
-                     return prev;
-                 });
-            }
-        }
-    });
+    const unsubscribe = StorageService.subscribeToCloud<T>(
+        user.uid,
+        key,
+        onData
+    );
 
     return () => unsubscribe();
   }, [user, key, mergeStrategy, transform]);
 
 
-  // 4. Persist changes to IDB AND Cloud (if logged in)
+  // 4. Persist changes
   useEffect(() => {
-    // Wait until initialized to prevent overwriting storage with default values
     if (!isInitialized) return;
 
     // Save to IDB
-    set(key, storedValue).catch(err => console.error('Error saving to IDB:', err));
+    StorageService.writeLocal(key, storedValue)
+        .catch(err => console.error('Error saving to IDB:', err));
       
     // If logged in, save to Firestore
     if (user) {
@@ -121,15 +90,10 @@ function useCloudStorage<T>(
 
         const saveToCloud = async () => {
             try {
-                const docRef = doc(db, 'users', user.uid, 'data', key);
-                await setDoc(docRef, { value: storedValue, updatedAt: new Date().toISOString() }, { merge: true });
+                await StorageService.writeToCloud(user.uid, key, storedValue);
                 lastCloudStr.current = currentStr;
             } catch (err) {
                 console.error("Error saving to cloud:", err);
-                const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-                addToRetryQueue(key, storedValue, errorMsg).catch(e => 
-                  console.error('Failed to add to retry queue:', e)
-                );
             }
         };
         

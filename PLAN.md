@@ -66,10 +66,10 @@
 - `src/context/ToastContext.tsx` - useToast() hook with success/error/warning/info methods
 
 * [ ] **Service Layer Implementation**
-    * [ ] **StorageService:** Refactor `useCloudStorage` hook into a standalone service class.
-        * [ ] Keep the hook as a thin React wrapper around the service.
-        * [ ] Service handles: IndexedDB operations, Firebase sync, retry queue processing.
-        * [ ] This enables testing business logic without React rendering.
+    * [x] **StorageService:** Refactor `useCloudStorage` hook into a standalone service class.
+        * [x] Keep the hook as a thin React wrapper around the service.
+        * [x] Service handles: IndexedDB operations, Firebase sync, retry queue processing.
+        * [x] This enables testing business logic without React rendering.
     * [ ] **MigrationService:** Extract migration logic from Phase 1 into testable service.
     * [ ] **GeminiService:** Centralize AI calls. Update prompts to accept the *new* JSON schema structure.
 * [x] **UI/UX Standardization** — COMPLETE
