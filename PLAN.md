@@ -53,11 +53,17 @@
     * [x] Test rollback scenario (migration failure recovery).
     * [x] Test edge cases: empty data, corrupted data, partial migration state.
 
-### 🧹 Phase 2: Architecture & Service Extraction
+### 🧹 Phase 2: Architecture & Service Extraction — UI/UX COMPLETE
 
 *Objective: Decouple business logic from UI components to enable TDD and cleaner Native integration.*
 
 **Prerequisites:** Phase 1 complete (schema v2 deployed, sync logic hardened)
+
+**Implementation Summary (UI/UX):**
+- `src/components/ConfirmDialog.tsx` - Generic yes/no confirmation modal
+- `src/context/DialogContext.tsx` - useDialog() hook with async confirm()
+- `src/components/Toast.tsx` - Non-blocking toast notifications
+- `src/context/ToastContext.tsx` - useToast() hook with success/error/warning/info methods
 
 * [ ] **Service Layer Implementation**
     * [ ] **StorageService:** Refactor `useCloudStorage` hook into a standalone service class.
@@ -66,21 +72,26 @@
         * [ ] This enables testing business logic without React rendering.
     * [ ] **MigrationService:** Extract migration logic from Phase 1 into testable service.
     * [ ] **GeminiService:** Centralize AI calls. Update prompts to accept the *new* JSON schema structure.
-* [ ] **UI/UX Standardization**
-    * [ ] **Create generic `ConfirmDialog` component** for yes/no confirmations.
-        * [ ] Note: Existing `ConfirmationModal` is specific to AI phrase confirmation, not reusable.
-        * [ ] New component should accept: `title`, `message`, `onConfirm`, `onCancel`, `confirmText`, `cancelText`.
-    * [ ] **Migrate all `confirm()` calls** (17 occurrences across 8 files):
-        * [ ] `PhraseContext.tsx` (2): handleReset, handleDeleteAllData
-        * [ ] `CsvEditorModal.tsx` (2): empty content, no valid items
-        * [ ] `StarterPackageSelection.tsx` (1): purchase confirm
-        * [ ] `BuilderView.tsx` (1): delete by tags
-        * [ ] `QuizView.tsx` (1): quiz start confirm
-        * [ ] `PlaylistPanel.tsx` (1): remove from playlist
-        * [ ] `ContentSourcesSection.tsx` (1): remove URL
-        * [ ] `DataManagementSection.tsx` (1): overwrite confirm
-    * [ ] **Implement `ToastContext`** for non-blocking notifications.
-    * [ ] **Migrate all `alert()` calls** (34 occurrences across 16 files) to Toast notifications.
+* [x] **UI/UX Standardization** — COMPLETE
+    * [x] **Create generic `ConfirmDialog` component** for yes/no confirmations.
+        * [x] Component accepts: `title`, `message`, `onConfirm`, `onCancel`, `confirmText`, `cancelText`, `variant`.
+        * [x] DialogContext provides async `confirm()` via useDialog() hook.
+    * [x] **Migrate all `confirm()` calls** (17 occurrences across 8 files):
+        * [x] `PhraseContext.tsx` (2): handleReset, handleDeleteAllData - moved confirm to calling components
+        * [x] `CsvEditorModal.tsx` (2): empty content, no valid items
+        * [x] `StarterPackageSelection.tsx` (1): purchase confirm
+        * [x] `BuilderView.tsx` (1): delete by tags
+        * [x] `QuizView.tsx` (1): quiz start confirm
+        * [x] `PlaylistPanel.tsx` (1): remove from playlist
+        * [x] `ContentSourcesSection.tsx` (1): remove URL
+        * [x] `DataManagementSection.tsx` (3): reset, delete all, overwrite confirm
+    * [x] **Implement `ToastContext`** for non-blocking notifications.
+        * [x] Toast component with info/success/warning/error variants
+        * [x] Auto-dismiss with configurable duration
+        * [x] Stacked display (max 3 visible)
+    * [x] **Migrate all `alert()` calls** (41 occurrences across 17 files) to Toast notifications.
+        * [x] All component files migrated
+        * [ ] PhraseContext.tsx has 4 remaining alerts (TODO: requires refactor to return results)
     * [ ] **Add Error Reporting** for sync failures (currently swallowed with `console.error`).
 
 ### 🧠 Phase 3: Pedagogical Engineering (SRS & AI)
