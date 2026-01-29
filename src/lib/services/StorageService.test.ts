@@ -77,6 +77,24 @@ describe('StorageService', () => {
        await expect(StorageService.writeToCloud(USER_ID, TEST_KEY, TEST_VAL))
          .rejects.toThrow('Network error');
     });
+
+    it('should include schemaVersion in Firestore payload', async () => {
+      const TEST_VERSION = 3;
+      // Mock doc() to return a predictable reference so we can verify setDoc calls correctly
+      const mockDocRef = { id: 'mock-doc-ref' };
+      vi.mocked(doc).mockReturnValue(mockDocRef as any);
+      
+      await StorageService.writeToCloud(USER_ID, TEST_KEY, TEST_VAL, TEST_VERSION);
+      
+      expect(setDoc).toHaveBeenCalledWith(
+        mockDocRef,
+        expect.objectContaining({
+          value: TEST_VAL,
+          schemaVersion: TEST_VERSION
+        }),
+        expect.anything()
+      );
+    });
   });
 
   describe('subscribeToCloud', () => {
@@ -84,6 +102,45 @@ describe('StorageService', () => {
       const unsub = StorageService.subscribeToCloud(USER_ID, TEST_KEY, () => {});
       expect(typeof unsub).toBe('function');
       expect(onSnapshot).toHaveBeenCalled();
+    });
+
+    it('should pass schemaVersion to callback', () => {
+      const mockOnSnapshot = vi.mocked(onSnapshot);
+      const callback = vi.fn();
+      
+      // Simulate Firestore calling the callback
+      mockOnSnapshot.mockImplementation((_ref, cb) => {
+        const mockSnap = {
+          exists: () => true,
+          data: () => ({ value: TEST_VAL, schemaVersion: 5 })
+        };
+        // @ts-ignore - mock implementation
+        cb(mockSnap);
+        return () => {};
+      });
+
+      StorageService.subscribeToCloud(USER_ID, TEST_KEY, callback);
+      
+      expect(callback).toHaveBeenCalledWith(TEST_VAL, { schemaVersion: 5 });
+    });
+
+    it('should default schemaVersion to 1 if missing', () => {
+      const mockOnSnapshot = vi.mocked(onSnapshot);
+      const callback = vi.fn();
+      
+      mockOnSnapshot.mockImplementation((_ref, cb) => {
+        const mockSnap = {
+          exists: () => true,
+          data: () => ({ value: TEST_VAL }) // No schemaVersion
+        };
+        // @ts-ignore - mock implementation
+        cb(mockSnap);
+        return () => {};
+      });
+
+      StorageService.subscribeToCloud(USER_ID, TEST_KEY, callback);
+      
+      expect(callback).toHaveBeenCalledWith(TEST_VAL, { schemaVersion: 1 });
     });
   });
 });

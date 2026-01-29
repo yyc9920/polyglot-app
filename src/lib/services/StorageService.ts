@@ -46,7 +46,7 @@ export const StorageService = {
   subscribeToCloud<T>(
     userId: string,
     key: string,
-    onData: (data: T) => void,
+    onData: (data: T, metadata?: { schemaVersion: number }) => void,
     onError?: (error: Error) => void
   ): () => void {
     if (!userId || !key) return () => {};
@@ -59,7 +59,7 @@ export const StorageService = {
           const data = docSnap.data();
           // but we just pass the 'value' field to the callback
           if (data && data.value !== undefined) {
-            onData(data.value as T);
+            onData(data.value as T, { schemaVersion: data.schemaVersion ?? 1 });
           }
         }
       },
@@ -74,7 +74,7 @@ export const StorageService = {
    * Writes value to Cloud Firestore.
    * Handles retry queue on failure.
    */
-  async writeToCloud<T>(userId: string, key: string, value: T): Promise<void> {
+  async writeToCloud<T>(userId: string, key: string, value: T, schemaVersion: number = 1): Promise<void> {
     if (!userId || !key) return;
 
     try {
@@ -85,7 +85,8 @@ export const StorageService = {
       
       await setDoc(docRef, { 
         value: sanitizedValue, 
-        updatedAt: new Date().toISOString() 
+        updatedAt: new Date().toISOString(),
+        schemaVersion
       }, { merge: true });
     } catch (err) {
       console.error(`Error saving to cloud for key ${key}:`, err);

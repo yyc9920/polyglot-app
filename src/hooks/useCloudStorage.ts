@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from 
 import { useAuth } from '../context/AuthContext';
 import { StorageService } from '../lib/services/StorageService';
 import { SyncErrorService } from '../lib/services/SyncErrorService';
+import { SCHEMA_VERSION } from '../types/schema';
 
 function useCloudStorage<T>(
   key: string,
@@ -46,7 +47,12 @@ function useCloudStorage<T>(
   useEffect(() => {
     if (!user) return;
 
-    const onData = (cloudValue: T) => {
+    const onData = (cloudValue: T, metadata?: { schemaVersion: number }) => {
+         // Check for schema version mismatch
+         if (metadata && metadata.schemaVersion > SCHEMA_VERSION.CURRENT) {
+             console.warn(`[CloudSync] Warning: Cloud schema version (${metadata.schemaVersion}) is newer than app version (${SCHEMA_VERSION.CURRENT}). Unknown fields will be ignored.`);
+         }
+
          lastCloudStr.current = JSON.stringify(cloudValue);
 
          setStoredValue(prev => {
@@ -95,7 +101,7 @@ function useCloudStorage<T>(
 
         const saveToCloud = async () => {
             try {
-                await StorageService.writeToCloud(user.uid, key, storedValue);
+                await StorageService.writeToCloud(user.uid, key, storedValue, SCHEMA_VERSION.CURRENT);
                 lastCloudStr.current = currentStr;
             } catch (err) {
                 console.error("Error saving to cloud:", err);
