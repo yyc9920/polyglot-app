@@ -1,10 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { StorageService } from './StorageService';
-import * as idb from 'idb-keyval';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 
-// idb-keyval is mocked in setupTests, but we can spy on it
-// firebase/firestore is also mocked
+vi.mock('./NativeStorageAdapter', () => ({
+  NativeStorageAdapter: {
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+    keys: vi.fn(() => Promise.resolve([])),
+  },
+}));
 
 describe('StorageService', () => {
   const TEST_KEY = 'test-key';
@@ -17,38 +22,43 @@ describe('StorageService', () => {
   });
 
   describe('readLocal', () => {
-    it('should read from IndexedDB', async () => {
-      vi.mocked(idb.get).mockResolvedValueOnce(TEST_VAL);
+    it('should read from NativeStorageAdapter', async () => {
+      const { NativeStorageAdapter } = await import('./NativeStorageAdapter');
+      vi.mocked(NativeStorageAdapter.get).mockResolvedValueOnce(TEST_VAL);
 
       const result = await StorageService.readLocal(TEST_KEY);
-      expect(idb.get).toHaveBeenCalledWith(TEST_KEY);
+      expect(NativeStorageAdapter.get).toHaveBeenCalledWith(TEST_KEY);
       expect(result).toEqual(TEST_VAL);
     });
 
-    it('should migrate from localStorage if IDB is empty', async () => {
-      // Setup: IDB returns undefined, localStorage has value
-      vi.mocked(idb.get).mockResolvedValueOnce(undefined);
+    it('should migrate from localStorage if storage is empty', async () => {
+      const { NativeStorageAdapter } = await import('./NativeStorageAdapter');
+      vi.mocked(NativeStorageAdapter.get).mockResolvedValueOnce(undefined);
+      vi.mocked(NativeStorageAdapter.set).mockResolvedValueOnce(undefined);
       localStorage.setItem(TEST_KEY, JSON.stringify(TEST_VAL));
 
       const result = await StorageService.readLocal(TEST_KEY);
 
-      // Verify migration
       expect(result).toEqual(TEST_VAL);
-      expect(idb.set).toHaveBeenCalledWith(TEST_KEY, TEST_VAL);
-      expect(localStorage.getItem(TEST_KEY)).toBeNull(); // Should be removed
+      expect(NativeStorageAdapter.set).toHaveBeenCalledWith(TEST_KEY, TEST_VAL);
+      expect(localStorage.getItem(TEST_KEY)).toBeNull();
     });
 
     it('should return undefined if both are empty', async () => {
-      vi.mocked(idb.get).mockResolvedValueOnce(undefined);
+      const { NativeStorageAdapter } = await import('./NativeStorageAdapter');
+      vi.mocked(NativeStorageAdapter.get).mockResolvedValueOnce(undefined);
       const result = await StorageService.readLocal(TEST_KEY);
       expect(result).toBeUndefined();
     });
   });
 
   describe('writeLocal', () => {
-    it('should write to IndexedDB', async () => {
+    it('should write to NativeStorageAdapter', async () => {
+      const { NativeStorageAdapter } = await import('./NativeStorageAdapter');
+      vi.mocked(NativeStorageAdapter.set).mockResolvedValueOnce(undefined);
+
       await StorageService.writeLocal(TEST_KEY, TEST_VAL);
-      expect(idb.set).toHaveBeenCalledWith(TEST_KEY, TEST_VAL);
+      expect(NativeStorageAdapter.set).toHaveBeenCalledWith(TEST_KEY, TEST_VAL);
     });
   });
 
@@ -64,7 +74,6 @@ describe('StorageService', () => {
        const error = new Error('Network error');
        vi.mocked(setDoc).mockRejectedValueOnce(error);
        
-       // The service re-throws the error
        await expect(StorageService.writeToCloud(USER_ID, TEST_KEY, TEST_VAL))
          .rejects.toThrow('Network error');
     });

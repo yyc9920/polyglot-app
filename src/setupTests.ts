@@ -58,6 +58,21 @@ vi.mock('idb-keyval', () => ({
   get: vi.fn().mockResolvedValue(undefined),
   set: vi.fn().mockResolvedValue(undefined),
   del: vi.fn().mockResolvedValue(undefined),
+  keys: vi.fn().mockResolvedValue([]),
 }));
 
+// Mock Capacitor for native platform detection
+vi.mock('@capacitor/core', () => ({
+  Capacitor: {
+    isNativePlatform: vi.fn(() => false),
+  },
+}));
 
+vi.mock('@capacitor/preferences', () => ({
+  Preferences: {
+    get: vi.fn(() => Promise.resolve({ value: null })),
+    set: vi.fn(() => Promise.resolve()),
+    remove: vi.fn(() => Promise.resolve()),
+    keys: vi.fn(() => Promise.resolve({ keys: [] })),
+  },
+}));

@@ -1,24 +1,19 @@
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { get, set } from 'idb-keyval';
+import { NativeStorageAdapter } from './NativeStorageAdapter';
 import { app } from '../firebase';
 import { addToRetryQueue } from '../sync';
 
 const db = getFirestore(app);
 
 export const StorageService = {
-  /**
-   * Reads value from local storage (IndexedDB).
-   * Also handles legacy migration from localStorage -> IndexedDB.
-   */
   async readLocal<T>(key: string): Promise<T | undefined> {
     try {
-      // 1. Check legacy localStorage first
       if (typeof window !== 'undefined') {
         const lsItem = localStorage.getItem(key);
         if (lsItem) {
           try {
             const parsed = JSON.parse(lsItem);
-            await set(key, parsed);
+            await NativeStorageAdapter.set(key, parsed);
             localStorage.removeItem(key);
             return parsed as T;
           } catch (e) {
@@ -27,8 +22,7 @@ export const StorageService = {
         }
       }
 
-      // 2. Read from IndexedDB
-      const val = await get<T>(key);
+      const val = await NativeStorageAdapter.get<T>(key);
       return val;
     } catch (error) {
       console.error(`Error reading from local storage for key ${key}:`, error);
@@ -36,14 +30,11 @@ export const StorageService = {
     }
   },
 
-  /**
-   * Writes value to local storage (IndexedDB).
-   */
   async writeLocal<T>(key: string, value: T): Promise<void> {
     try {
-      await set(key, value);
+      await NativeStorageAdapter.set(key, value);
     } catch (error) {
-      console.error(`Error writing to IDB for key ${key}:`, error);
+      console.error(`Error writing to storage for key ${key}:`, error);
       throw error;
     }
   },
