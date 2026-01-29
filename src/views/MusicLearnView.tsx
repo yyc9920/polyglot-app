@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import YouTube from 'react-youtube';
 import { useMusicContext } from '../context/MusicContext';
 import { usePhraseAppContext } from '../context/PhraseContext';
 import { GeminiService } from '../lib/services/GeminiService';
@@ -185,11 +184,13 @@ export function MusicLearnView() {
                             &larr; {t('music.backToResults')}
                         </button>
                     </div>
-                    <div className="rounded-xl overflow-hidden shadow-2xl bg-black aspect-video ring-4 ring-black/5 dark:ring-white/5 flex-none">
-                        <YouTube 
-                            videoId={selectedVideo.videoId} 
-                            opts={{ width: '100%', height: '100%', playerVars: { autoplay: 1 } }} 
-                            className="w-full h-full"
+                    <div className="rounded-xl overflow-hidden shadow-2xl bg-black aspect-video ring-4 ring-black/5 dark:ring-white/5 flex-none relative">
+                        <iframe
+                            className="absolute inset-0 w-full h-full"
+                            src={`https://www.youtube.com/embed/${selectedVideo.videoId}?autoplay=1&enablejsapi=1&origin=${window.location.origin}`}
+                            title={selectedVideo.title}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
                         />
                     </div>
                     <div className="flex-none">

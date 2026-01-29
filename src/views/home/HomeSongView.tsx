@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import YouTube from 'react-youtube';
 import { Music as MusicIcon, ArrowLeft } from 'lucide-react';
 import { BottomSheet } from '../../components/BottomSheet';
 import { LyricsView } from '../../components/music/LyricsView';
@@ -154,11 +153,13 @@ export const HomeSongView = React.memo(function HomeSongView({
                         </div>
                         {localMusicState.selectedVideo && (
                             <>
-                                <div className="rounded-xl overflow-hidden shadow-2xl bg-black aspect-video ring-4 ring-black/5 dark:ring-white/5 flex-none">
-                                    <YouTube 
-                                        videoId={localMusicState.selectedVideo.videoId} 
-                                        opts={{ width: '100%', height: '100%', playerVars: { autoplay: 1 } }} 
-                                        className="w-full h-full"
+                                <div className="rounded-xl overflow-hidden shadow-2xl bg-black aspect-video ring-4 ring-black/5 dark:ring-white/5 flex-none relative">
+                                    <iframe
+                                        className="absolute inset-0 w-full h-full"
+                                        src={`https://www.youtube.com/embed/${localMusicState.selectedVideo.videoId}?autoplay=1&enablejsapi=1&origin=${window.location.origin}`}
+                                        title={localMusicState.selectedVideo.title}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
                                     />
                                 </div>
                                 <div className="flex-none">
