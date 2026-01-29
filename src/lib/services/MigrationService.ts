@@ -35,10 +35,15 @@ export const MigrationService = {
     const phraseList = await NativeStorageAdapter.get<unknown[]>(STORAGE_KEYS.PHRASE_LIST);
     const hasLegacyData = phraseList?.some(isLegacyPhrase) ?? false;
     const hasV2Data = phraseList?.some(isV2Phrase) ?? false;
+    // Check if any phrase has V3 FSRS fields to accurately detect V3
+    const hasV3Data = phraseList?.some(p => this.isV3Phrase(p)) ?? false;
     
     let detectedVersion: number = SCHEMA_VERSION.LEGACY;
-    if (hasV2Data && !hasLegacyData) {
-      detectedVersion = SCHEMA_VERSION.CURRENT;
+    
+    if (hasV3Data) {
+      detectedVersion = SCHEMA_VERSION.CURRENT; // V3
+    } else if (hasV2Data && !hasLegacyData) {
+      detectedVersion = SCHEMA_VERSION.V2; // V2
     }
     
     return {
