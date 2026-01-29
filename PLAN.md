@@ -124,29 +124,36 @@
         * [x] Rationale: If user edits phrase text, old cache should be orphaned, not reused.
         * [x] Cache eviction for entries not accessed in 30 days via `evictStale()`.
 
-### 📱 Phase 4: Mobile Scaling & Growth
+### ✅ Phase 4: Mobile Scaling & Growth — COMPLETE
 
 *Objective: Native deployment and monetization.*
 
 **Prerequisites:** Phase 1-3 complete (stable data layer, clean architecture, learning features)
 
-* [ ] **Capacitor Transition**
-    * [ ] Initialize Capacitor project (`npx cap init`).
-    * [ ] Configure strict Content Security Policy (CSP) for mobile compliance.
-    * [ ] **Storage Migration Path:**
-        * [ ] Note: `useCloudStorage` already migrates `localStorage` → IndexedDB (lines 30-45).
-        * [ ] Verify IndexedDB works in Capacitor WebView (it should).
-        * [ ] If issues arise, migrate IndexedDB → Capacitor Preferences as fallback.
-        * [ ] Test migration sequence: localStorage → IDB → (optional) Capacitor Preferences.
-* [ ] **Monetization & Compliance**
-    * [ ] **Implement `EntitlementService`** - centralized feature gate:
-        * [ ] Single source of truth for premium status.
-        * [ ] All feature gates query this service (no scattered checks).
-        * [ ] Methods: `canUseAiTutor()`, `canUseCloudSync()`, `canUseSrsAnalytics()`.
-    * [ ] Implement "Freemium" logic:
-        * Free: unlimited local cards.
-        * Paid: AI Tutor, Cloud Sync, Advanced SRS analytics.
-    * [ ] Integrate RevenueCat or similar for cross-platform subscription management (targeting 15% Small Business fee).
+**Implementation Summary:**
+- `capacitor.config.ts` - Capacitor configuration with Firebase/Gemini API allowlist
+- `src/lib/services/NativeStorageAdapter.ts` - IndexedDB with Capacitor Preferences fallback
+- `src/lib/services/EntitlementService.ts` - Centralized feature gating (free/premium/trial)
+- `src/lib/services/RevenueCatService.ts` - RevenueCat integration for subscription management
+- `src/hooks/useEntitlement.ts` - React hook for entitlement state
+
+* [x] **Capacitor Transition**
+    * [x] Initialize Capacitor project (`npx cap init`).
+    * [x] Configure strict Content Security Policy (CSP) for mobile compliance.
+    * [x] **Storage Migration Path:**
+        * [x] Note: `useCloudStorage` already migrates `localStorage` → IndexedDB (lines 30-45).
+        * [x] Verify IndexedDB works in Capacitor WebView (it should).
+        * [x] Migrate IndexedDB → Capacitor Preferences as fallback via NativeStorageAdapter.
+        * [x] Test migration sequence: localStorage → IDB → (optional) Capacitor Preferences.
+* [x] **Monetization & Compliance**
+    * [x] **Implement `EntitlementService`** - centralized feature gate:
+        * [x] Single source of truth for premium status.
+        * [x] All feature gates query this service (no scattered checks).
+        * [x] Methods: `canUseAiTutor()`, `canUseCloudSync()`, `canUseSrsAnalytics()`.
+    * [x] Implement "Freemium" logic:
+        * Free: unlimited local cards, export_data.
+        * Paid: AI Tutor, Cloud Sync, Advanced SRS analytics, unlimited playlists, custom themes.
+    * [x] Integrate RevenueCat for cross-platform subscription management (targeting 15% Small Business fee).
 
 ---
 
