@@ -161,13 +161,13 @@
 
 *These apply across all phases and should be tracked separately.*
 
-* [ ] **Cloud Schema Versioning**
-    * [ ] Define how multiple app versions interact with cloud data.
-    * [ ] Older app reads newer schema → graceful degradation (ignore unknown fields).
-    * [ ] Newer app reads older schema → auto-upgrade on next write.
-* [ ] **Performance Baselines**
-    * [ ] Establish metrics before Phase 1: app startup time, sync latency, phrase list render time.
-    * [ ] Re-measure after each phase to catch regressions.
+* [x] **Cloud Schema Versioning**
+    * [x] Define how multiple app versions interact with cloud data.
+    * [x] Older app reads newer schema → graceful degradation (ignore unknown fields).
+    * [x] Newer app reads older schema → auto-upgrade on next write.
+* [x] **Performance Baselines**
+    * [x] Establish metrics before Phase 1: app startup time, sync latency, phrase list render time.
+    * [x] Re-measure after each phase to catch regressions.
 
 ---
 
